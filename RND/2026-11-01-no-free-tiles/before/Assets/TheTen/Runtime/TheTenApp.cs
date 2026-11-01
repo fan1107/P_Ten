@@ -1,0 +1,407 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+
+namespace TheTen
+{
+    public sealed class TheTenApp : MonoBehaviour
+    {
+        public GameBalance Balance;
+        [HideInInspector] public string SaveNamespace = "TheTen";
+        public RunModel Run { get; private set; }
+        public ReviveTicketManager Tickets { get; private set; }
+        public bool IsHome { get; private set; } = true;
+        readonly Dictionary<int, Image> faces = new Dictionary<int, Image>();
+        readonly Dictionary<int, Text> numbers = new Dictionary<int, Text>();
+        readonly Dictionary<int, Text> orderLabels = new Dictionary<int, Text>();
+        readonly Dictionary<int, TileVisual> tileVisuals = new Dictionary<int, TileVisual>();
+        readonly Color ink = new Color32(26, 51, 54, 255);
+        readonly Color mint = new Color32(192, 225, 203, 255);
+        readonly Color paper = new Color32(245, 242, 228, 255);
+        readonly Color muted = new Color32(116, 138, 130, 255);
+        readonly Color gold = new Color32(243, 203, 111, 255);
+        Font font;
+        Canvas canvas;
+        RectTransform root, boardRoot, boardEffectsRoot, overlay;
+        Text timerText, chapterText, equationText, statsText, toastText, lifeText, comboText, scoreText;
+        Image timeFill, comboFill;
+        ComboFeedback comboFeedback;
+        MockServerClock mockClock;
+        IRewardedAdService ads;
+        LocalRanking ranking;
+        string runId;
+        bool operationBusy, transitionBusy, submitted, appSuspended;
+        float refreshIn, toastUntil;
+        RunState renderedState;
+        bool destroyed;
+
+        async void Start()
+        {
+            if (Balance == null) Balance = ScriptableObject.CreateInstance<GameBalance>();
+            ranking = new LocalRanking(SaveNamespace);
+            font = Resources.Load<Font>("Atlas/MintPixel");
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            ITrustedServerClock clock;
+            IPurchaseGateway purchase;
+            if (Balance.EnableMockCommerce)
+            { mockClock = new MockServerClock(); clock = mockClock; purchase = new MockPurchaseGateway(SaveNamespace); ads = new MockRewardedAdService(Balance); }
+            else
+            { clock = new UnavailableServerClock(); purchase = new UnavailablePurchaseGateway(); ads = new UnavailableAdService(); }
+            Tickets = new ReviveTicketManager(clock, new PlayerPrefsTicketStorage(SaveNamespace + (Balance.EnableMockCommerce ? ".Mock.Tickets.v15" : ".Production.Tickets.v15")), purchase);
+            BuildCanvas(); BuildGame(); ShowHome();
+            await Tickets.RestoreAsync();
+            if (!destroyed && IsHome) ShowHome();
+        }
+        void OnDestroy() { destroyed = true; }
+        void Update()
+        {
+            if (canvas == null) return;
+            var safe = Screen.safeArea;
+            canvas.scaleFactor = Mathf.Min(safe.width / 720f, safe.height / 1280f);
+            root.anchoredPosition = (safe.center - new Vector2(Screen.width, Screen.height) / 2) / canvas.scaleFactor;
+            if (Run != null && !IsHome)
+            {
+                if (!appSuspended) Run.Tick(Time.unscaledDeltaTime);
+                UpdateHud();
+                if ((Run.State == RunState.Shuffling || Run.State == RunState.BoardTransition) && !transitionBusy) StartCoroutine(Transition());
+                if (Run.State != renderedState)
+                {
+                    renderedState = Run.State;
+                    RefreshFaces();
+                    if (Run.State == RunState.ReviveChoice) ShowRevive();
+                    if (Run.State == RunState.GameOver) ShowGameOver();
+                }
+            }
+            if (Time.unscaledTime > toastUntil && toastText != null) toastText.text = "";
+            refreshIn -= Time.unscaledDeltaTime;
+            if (refreshIn <= 0) { refreshIn = 30; RefreshTickets(); }
+        }
+        async void RefreshTickets() { if (Tickets != null) await Tickets.RefreshAsync(); }
+        void OnApplicationPause(bool pause) { HandleFocus(!pause); }
+        void OnApplicationFocus(bool focus) { HandleFocus(focus); }
+        void HandleFocus(bool focus)
+        {
+            appSuspended = !focus;
+            if (!focus && Run != null && !IsHome && Run.State == RunState.Playing) { Run.Pause(); ShowPause(); }
+            if (focus) RefreshTickets();
+        }
+        void BuildCanvas()
+        {
+            var go = new GameObject("THE TEN • Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
+            go.transform.SetParent(transform);
+            canvas = go.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            root = Rect("Portrait safe area", go.transform, 0, 0, 720, 1280);
+            root.anchorMin = root.anchorMax = new Vector2(.5f, .5f); root.pivot = new Vector2(.5f, .5f); root.anchoredPosition = Vector2.zero;
+            Panel("Background", root, 0, 0, 720, 1280, new Color32(224, 234, 218, 255));
+            if (FindFirstObjectByType<EventSystem>() == null)
+            {
+                var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+                es.transform.SetParent(transform);
+            }
+        }
+        void BuildGame()
+        {
+            Logo(root, 42, 35, 450, 60, 54);
+            Label("THREE TILES. ONE PERFECT TEN.", root, 45, 101, 550, 25, 17, muted);
+            Button("Ⅱ", root, 614, 43, 64, 64, paper, () => { if (Run != null && Run.State == RunState.Playing) { Run.Pause(); ShowPause(); } });
+            Panel("Clock card", root, 40, 155, 640, 125, ink);
+            chapterText = Label("CHAPTER 01", root, 62, 172, 230, 25, 19, mint, FontStyle.Bold);
+            lifeText = Label("LIFE 1 / 2", root, 440, 174, 215, 25, 18, mint, align: TextAnchor.MiddleRight);
+            timerText = Label(Balance.InitialTime.ToString("0.0"), root, 60, 205, 300, 58, 47, paper, FontStyle.Bold);
+            Label("SECONDS LEFT", root, 373, 228, 280, 22, 15, mint, align: TextAnchor.MiddleRight);
+            Panel("Time track", root, 40, 274, 640, 20, mint);
+            timeFill = Panel("Time remaining", root, 48, 280, 624, 8, new Color32(185, 220, 137, 255));
+            Panel("Combo track", root, 40, 300, 640, 18, mint);
+            comboFill = Panel("Combo remaining", root, 48, 305, 0, 8, gold);
+            comboText = Label("COMBO / MATCH TO START", root, 42, 324, 360, 25, 15, ink, FontStyle.Bold);
+            scoreText = Label("SCORE  0", root, 405, 324, 273, 25, 19, ink, FontStyle.Bold, TextAnchor.MiddleRight);
+            equationText = Label("·   +   ·   +   ·   =   10", root, 40, 357, 640, 38, 25, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Label("THE STACK", root, 45, 400, 340, 25, 16, muted, FontStyle.Bold);
+            Label("UNCOVER YOUR NEXT MOVE", root, 300, 400, 375, 25, 13, muted, align: TextAnchor.MiddleRight);
+            Panel("Board well", root, 30, 430, 660, 440, new Color32(205, 220, 199, 255));
+            Panel("Free tray", root, 38, 922, 644, 134, ink);
+            boardRoot = Rect("Layered tiles", root, 0, 0, 720, 1280);
+            boardEffectsRoot = Rect("Tile effects", root, 0, 0, 720, 1280);
+            Label("FREE TILES", root, 45, 893, 330, 25, 17, muted, FontStyle.Bold);
+            Label("ALWAYS AVAILABLE", root, 350, 893, 325, 25, 14, muted, align: TextAnchor.MiddleRight);
+            statsText = Label("0 / " + BoardModel.TileCount + " REMOVED", root, 42, 1065, 636, 30, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            toastText = Label("", root, 35, 1105, 650, 38, 20, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Button("HOW TO PLAY", root, 42, 1165, 302, 59, paper, ShowHelp);
+            Button("LAB / MOCK", root, 362, 1165, 316, 59, paper, ShowLab);
+            Label("PROTOTYPE  /  LOCAL BEST  /  NO REAL PAYMENTS", root, 30, 1244, 660, 22, 12, muted, align: TextAnchor.MiddleCenter);
+            comboFeedback = Rect("Combo award", root, 0, 0, 390, 104).gameObject.AddComponent<ComboFeedback>();
+            comboFeedback.Initialize(font);
+        }
+        public void StartRun()
+        {
+            if (operationBusy || transitionBusy) return;
+            ClearOverlay(); IsHome = false; submitted = false;
+            comboFeedback.Hide();
+            runId = Guid.NewGuid().ToString("N");
+            Run = new RunModel(Balance, UnityEngine.Random.Range(0, int.MaxValue));
+            renderedState = RunState.Playing; RenderBoard(); UpdateHud();
+        }
+        public void SelectTile(int id)
+        {
+            if (IsHome || operationBusy || overlay != null) return;
+            double previousMultiplier = Run.ComboMultiplier;
+            var result = Run.Select(id);
+            if (result == SelectionResult.Ten)
+            {
+                comboFeedback.Show(Run.LastMatchScore, Run.ComboMultiplier, Run.ComboMultiplier > previousMultiplier);
+                Toast("TEN!  +" + Run.LastMatchScore + " PTS  •  ×" + Run.ComboMultiplier.ToString("0.#") + "  •  +" + Balance.MatchBonus.ToString("0.#") + "s");
+            }
+            else if (result == SelectionResult.Miss) Toast("Not quite. Try another three.");
+            RefreshFaces(); UpdateHud();
+        }
+        void RenderBoard()
+        {
+            foreach (Transform child in boardRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
+            foreach (Transform child in boardEffectsRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
+            faces.Clear(); numbers.Clear(); orderLabels.Clear(); tileVisuals.Clear();
+            foreach (var tile in Run.Board.Tiles.OrderBy(t => t.Layer).ThenBy(t => t.Y).ThenBy(t => t.X))
+            {
+                if (tile.Removed) continue;
+                var card = Rect("Tile " + tile.Id + " • " + tile.Label, boardRoot, tile.X, tile.Y, BoardModel.TileWidth, BoardModel.TileHeight);
+                var shadow = Panel("Shadow", card, 5, 7, BoardModel.TileWidth, BoardModel.TileHeight, new Color32(13, 39, 25, 100));
+                shadow.raycastTarget = false;
+                var face = Panel("Face", card, 0, 0, BoardModel.TileWidth, BoardModel.TileHeight, Color.white);
+                MintTheme.Apply(face, "TileIdle", false);
+                var button = face.gameObject.AddComponent<Button>(); int id = tile.Id;
+                button.onClick.AddListener(() => SelectTile(id));
+                button.transition = Selectable.Transition.None;
+                faces[id] = face;
+                numbers[id] = Label(tile.Label, face.transform, 5, 10, 82, 68, 38, ink, FontStyle.Normal, TextAnchor.MiddleCenter);
+                orderLabels[id] = Label("", face.transform, 12, 72, 68, 15, 10, muted, align: TextAnchor.MiddleCenter);
+                var visual = card.gameObject.AddComponent<TileVisual>();
+                visual.Initialize(face, shadow, numbers[id], boardEffectsRoot, Run.Board.IsAvailable(id));
+                tileVisuals[id] = visual;
+            }
+            RefreshFaces();
+        }
+        void RefreshFaces()
+        {
+            foreach (var pair in faces)
+            {
+                int id = pair.Key;
+                var visual = tileVisuals[id];
+                if (visual == null) continue;
+                if (Run.Board.Tiles[id].Removed) { visual.ClearWithSparkles(); continue; }
+                bool available = Run.Board.IsAvailable(id), selected = Run.Selection.Contains(id);
+                visual.SetState(available, selected);
+                orderLabels[id].text = selected ? (Run.Selection.IndexOf(id) + 1).ToString("00") : "";
+                orderLabels[id].color = ink;
+            }
+        }
+        void UpdateHud()
+        {
+            timerText.text = Run.RemainingTime.ToString("0.0");
+            timerText.color = Run.RemainingTime <= 10 ? gold : paper;
+            chapterText.text = "CHAPTER " + Run.Chapter.ToString("00");
+            lifeText.text = Run.ReviveUsed ? "LIFE 2 / 2" : "LIFE 1 / 2";
+            float max = Balance.MaxRemainingTime > 0 ? Balance.MaxRemainingTime : Mathf.Max(Balance.InitialTime, (float)Run.RemainingTime);
+            timeFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 624 * Mathf.Clamp01((float)Run.RemainingTime / max));
+            comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 624 * Mathf.Clamp01((float)(Run.ComboRemaining / Math.Max(.1, Balance.ComboWindow))));
+            float pulse = Run.ComboRemaining > 0 ? comboFeedback.Pulse : 0;
+            comboFill.color = Color.Lerp(ComboFeedback.TierColor(Run.ComboMultiplier), Color.white, pulse * .2f);
+            comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 8 + 2 * pulse);
+            comboText.text = Run.ComboRemaining > 0 ? "COMBO ×" + Run.ComboMultiplier.ToString("0.#") + "   /   " + Run.ComboRemaining.ToString("0.0") + "s" : "COMBO  /  MATCH TO START";
+            scoreText.text = "SCORE  " + Run.Score.ToString("N0");
+            string expression = "";
+            for (int i = 0; i < Run.Selection.Count; i++)
+            {
+                var tile = Run.Board.Tiles[Run.Selection[i]];
+                if (tile.IsDouble) expression = "(" + expression + ") × 2";
+                else expression += (i > 0 ? " + " : "") + tile.Label;
+            }
+            equationText.text = Run.Selection.Count == 0 ? "·   +   ·   +   ·   =   10" : expression + "   →   10";
+            statsText.text = (BoardModel.TileCount - Run.Board.Remaining) + " / " + BoardModel.TileCount + " REMOVED    •    BEST  " + Math.Max(Run.Score, ranking.BestScore).ToString("N0") + " PTS";
+        }
+        IEnumerator Transition()
+        {
+            transitionBusy = true;
+            Toast(Run.State == RunState.Shuffling ? "AUTO SHUFFLE" : "BOARD CLEAR  /  NEXT CHAPTER");
+            yield return new WaitForSecondsRealtime(Mathf.Max(Balance.TransitionSeconds, TileVisual.ClearDuration));
+            while (appSuspended || overlay != null) yield return null;
+            bool ok = Run.CompleteTransition(out bool recovered);
+            RenderBoard(); transitionBusy = false;
+            Toast(!ok ? "No legal layout remains. Run ended safely." : recovered ? "BOARD RECOVERED    +8 SECONDS" : "READY");
+        }
+        void Toast(string message) { toastText.text = message; toastUntil = Time.unscaledTime + 2.5f; }
+
+        void ShowHome()
+        {
+            IsHome = true;
+            Modal("MAKE ROOM\nFOR TEN.", "A little arithmetic. A little discovery.\nThree tiles at a time.", true);
+            Logo(overlay, 56, 60, 580, 70, 64);
+            Label("NUMBER PUZZLE  /  SURVIVAL", overlay, 59, 135, 580, 25, 17, muted);
+            for (int i = 0; i < 3; i++)
+            {
+                float x = 138 + i * 145, y = 510 - (i == 1 ? 20 : 0);
+                var tile = Panel("Home tile", overlay, x, y, 125, 150, Color.white);
+                MintTheme.Apply(tile, i == 1 ? "TileSelected" : "TileIdle", false);
+                Label(new[] { "2", "3", "5" }[i], overlay, x, y + 12, 125, 100, 60, ink, FontStyle.Normal, TextAnchor.MiddleCenter).color = ink;
+            }
+            Label("LOCAL BEST   " + ranking.BestScore.ToString("N0") + " PTS", overlay, 50, 745, 620, 40, 23, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Button("LET'S PLAY  →", overlay, 80, 828, 560, 85, ink, StartRun, paper);
+            Button("REVIVE PASS / MOCK STORE", overlay, 80, 937, 560, 70, mint, ShowStore);
+            Button("HOW TO PLAY", overlay, 80, 1030, 560, 65, paper, ShowHelp);
+            Label(BoardModel.TileCount + " tiles • " + Balance.InitialTime.ToString("0") + " seconds • up to ×5 combo", overlay, 60, 1150, 600, 30, 20, muted, align: TextAnchor.MiddleCenter);
+        }
+        void Modal(string title, string description, bool home = false)
+        {
+            comboFeedback?.Hide();
+            ClearOverlay();
+            overlay = Rect("Modal", root, 0, 0, 720, 1280);
+            Panel("Modal background", overlay, 0, 0, 720, 1280, new Color32(224, 234, 218, 255));
+            Panel("Modal card", overlay, 30, home ? 200 : 150, 660, home ? 1020 : 1070, ink);
+            Label(title, overlay, 55, home ? 254 : 180, 610, home ? 160 : 130, home ? 67 : 51, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Label(description, overlay, 65, home ? 425 : 330, 590, home ? 65 : 140, home ? 18 : 20, muted, align: TextAnchor.MiddleCenter);
+        }
+        void ClearOverlay()
+        {
+            if (overlay != null) { overlay.gameObject.SetActive(false); Destroy(overlay.gameObject); overlay = null; }
+        }
+        void ShowPause()
+        {
+            if (canvas == null) return;
+            Modal("TAKE A BREATH.", "Your clock is paused.\nYour tiles will be right here.");
+            Button("RESUME", overlay, 80, 560, 560, 80, ink, () => { ClearOverlay(); Run.Resume(); }, paper);
+            Button("END RUN", overlay, 80, 670, 560, 70, paper, () => { Run.End(); ShowGameOver(); });
+        }
+        void ShowHelp()
+        {
+            if (Run != null && !IsHome) Run.Pause();
+            Modal("THREE MAKES TEN.", "Each match earns " + Balance.MatchScore + " points and " + Balance.MatchBonus + " seconds.\nMatch again within " + Balance.ComboWindow + "s: ×1.5 → ×2 → ×2.5 → ×3 → ×4 → ×5.");
+            Label("01   Clear the top tiles to reveal the layers.\n\n02   The six free tiles are always available.\n\n03   Tap a selected tile again to undo.\n\n04   No move? The board shuffles automatically.\n\n05   Chapter 10: 0 and −1. Chapter 20: ×2.\n        ×2 cannot be first, or used twice.\n\n06   One revive per run. Your board stays.", overlay, 65, 510, 590, 480, 18, ink);
+            Button("GOT IT", overlay, 80, 1080, 560, 80, ink, ReturnFromMenu, paper);
+        }
+        void ReturnFromMenu()
+        {
+            if (IsHome) { ShowHome(); return; }
+            ClearOverlay();
+            if (Run.State == RunState.Paused) Run.Resume();
+            else if (Run.State == RunState.ReviveChoice) ShowRevive();
+            else if (Run.State == RunState.GameOver) ShowGameOver();
+        }
+        void ShowRevive()
+        {
+            Modal("ONE MORE LIFE?", "Keep your board. Start with 30 seconds.\nYour survival clock is paused.");
+            Label("SCORE   " + Run.Score.ToString("N0") + " PTS", overlay, 65, 495, 590, 55, 32, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            bool canUse = Tickets.CurrentTicketCount > 0 && Tickets.SyncState == TicketSyncState.Ready;
+            Button(canUse ? "USE REVIVE TICKET  (" + Tickets.CurrentTicketCount + ")" : "WATCH REWARDED AD / MOCK", overlay, 80, 610, 560, 85, ink, () => { if (canUse) UseTicket(); else WatchAd(); }, paper);
+            Button("FINISH RUN", overlay, 80, 727, 560, 70, paper, () => { if (!operationBusy) { Run.End(); ShowGameOver(); } });
+            Button("REVIVE PASS / MOCK STORE", overlay, 80, 827, 560, 65, mint, ShowStore);
+            Label(Tickets.SyncState == TicketSyncState.Ready ? "Maximum one revive. Equal chances for everyone." : "Server time pending. No tickets issued.\nYou can still use a rewarded ad.", overlay, 65, 945, 590, 100, 21, muted, align: TextAnchor.MiddleCenter);
+        }
+        async void UseTicket()
+        {
+            if (operationBusy || Run.State != RunState.ReviveChoice) return;
+            operationBusy = true;
+            bool used = await Tickets.TryConsumeAsync(runId);
+            if (destroyed) return;
+            if (used && Run.Revive()) { ClearOverlay(); Toast("WELCOME BACK"); }
+            else { ShowRevive(); Toast("Ticket confirmation pending. Try again."); }
+            operationBusy = false;
+        }
+        async void WatchAd()
+        {
+            if (operationBusy || !Run.BeginAd()) return;
+            operationBusy = true;
+            Modal("MOCK AD", "Prototype simulation — no real advertisement.\nWaiting for a verified reward callback…");
+            MockAdOutcome outcome;
+            try { outcome = await ads.ShowAsync(); } catch { outcome = MockAdOutcome.Unavailable; }
+            if (destroyed) return;
+            if (outcome == MockAdOutcome.Rewarded) { Run.Revive(); ClearOverlay(); }
+            else
+            {
+                Run.CancelAd();
+                if (outcome == MockAdOutcome.Unavailable && Balance.UnavailablePolicy == AdUnavailablePolicy.EndRun) { Run.End(); ShowGameOver(); }
+                else { ShowRevive(); Toast(outcome == MockAdOutcome.Cancelled ? "Ad cancelled. No reward granted." : "Ad unavailable. You may retry or finish."); }
+            }
+            operationBusy = false;
+        }
+        void ShowGameOver()
+        {
+            if (!submitted) { ranking.Submit(Run.Score); submitted = true; }
+            Modal("NICELY PLAYED.", "Keep the combo going.\nCome back for another perfect ten.");
+            Label(Run.Score.ToString("N0"), overlay, 60, 480, 600, 110, 80, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Label("TOTAL SCORE", overlay, 60, 595, 600, 40, 20, muted, align: TextAnchor.MiddleCenter);
+            Label("MATCHES    " + Run.SuccessCount + "\nSURVIVED    " + Run.TotalSurvivalTime.ToString("0.0") + "s\n\nCHAPTER " + Run.Chapter + "    •    " + Run.TotalRemovedTiles + " TILES\nLOCAL BEST    " + ranking.BestScore.ToString("N0") + " PTS", overlay, 60, 670, 600, 230, 25, ink, align: TextAnchor.MiddleCenter);
+            Button("PLAY AGAIN", overlay, 80, 960, 560, 80, ink, StartRun, paper);
+            Button("HOME", overlay, 80, 1068, 560, 65, paper, ShowHome);
+        }
+        void ShowStore()
+        {
+            if (operationBusy) return;
+            Modal("A DAILY SECOND\nCHANCE.", "AD-FREE REVIVE PASS\nNon-consumable • Reference price KRW 9,000");
+            Label("2 tickets each day. No rollover.\nResets at 00:00 Asia/Seoul.\nOne revive per run, with or without the pass.\nNo time or score bonuses.", overlay, 65, 490, 590, 190, 25, ink, align: TextAnchor.MiddleCenter);
+            Label((Balance.EnableMockCommerce ? "MOCK STORE — NO CHARGE\n" : "STORE NOT CONNECTED\n") + (Tickets.HasAdFreeRevivePurchase ? "Owned  •  Tickets " + Tickets.CurrentTicketCount + "/2" : "Not purchased") + "\n" + Tickets.SyncState + "  •  " + Tickets.LastResetDate, overlay, 65, 705, 590, 110, 21, muted, align: TextAnchor.MiddleCenter);
+            Button(Tickets.HasAdFreeRevivePurchase ? "REFRESH TICKETS" : "SIMULATE VERIFIED PURCHASE", overlay, 80, 850, 560, 75, ink, () => Commerce(false), paper);
+            Button("RESTORE PURCHASE", overlay, 80, 950, 560, 65, paper, () => Commerce(true));
+            Button("BACK", overlay, 80, 1040, 560, 65, mint, ReturnFromMenu);
+        }
+        async void Commerce(bool restore)
+        {
+            if (operationBusy) return;
+            operationBusy = true;
+            Modal("VERIFYING…", "Confirming purchase and server date.\nNo tickets are issued before verification.");
+            bool ok = restore ? await Tickets.RestoreAsync() : Tickets.HasAdFreeRevivePurchase ? await Tickets.RefreshAsync() : await Tickets.PurchaseAsync();
+            if (destroyed) return;
+            operationBusy = false; ShowStore();
+            if (!ok) Toast("Verification pending. No tickets granted.");
+        }
+        void ShowLab()
+        {
+            if (operationBusy) return;
+            if (Run != null && !IsHome) Run.Pause();
+            Modal("PROTOTYPE LAB", "These controls simulate external services.\nThey are not production purchase or time verification.");
+            Button("EXPIRE CURRENT LIFE", overlay, 80, 510, 560, 65, paper, () => { ClearOverlay(); Run.Resume(); Run.Tick(1000000); });
+            Button("MOCK AD: " + Balance.AdOutcome, overlay, 80, 600, 560, 65, paper, () => { Balance.AdOutcome = (MockAdOutcome)(((int)Balance.AdOutcome + 1) % 3); ShowLab(); });
+            Button("MOCK SERVER: " + (mockClock != null && mockClock.Online ? "ONLINE" : "OFFLINE"), overlay, 80, 690, 560, 65, paper, () => { if (mockClock != null) mockClock.Online = !mockClock.Online; RefreshTickets(); ShowLab(); });
+            Button("ADVANCE MOCK SERVER +1 DAY", overlay, 80, 780, 560, 65, paper, () => { mockClock?.AdvanceDay(); RefreshTickets(); Toast("Mock server advanced. Refreshing tickets."); });
+            Button("REVIVE PASS / MOCK STORE", overlay, 80, 870, 560, 65, mint, ShowStore);
+            Button("BACK", overlay, 80, 1010, 560, 75, ink, ReturnFromMenu, paper);
+        }
+
+        RectTransform Rect(string name, Transform parent, float x, float y, float w, float h)
+        {
+            var go = new GameObject(name, typeof(RectTransform)); go.transform.SetParent(parent, false);
+            var r = (RectTransform)go.transform; r.anchorMin = r.anchorMax = new Vector2(0, 1); r.pivot = new Vector2(0, 1);
+            r.anchoredPosition = new Vector2(x, -y); r.sizeDelta = new Vector2(w, h); return r;
+        }
+        Image Panel(string name, Transform parent, float x, float y, float w, float h, Color color)
+        {
+            var r = Rect(name, parent, x, y, w, h); var image = r.gameObject.AddComponent<Image>(); image.color = color;
+            if (name == "Background" || name == "Modal background") MintTheme.Apply(image, "MintGarden", false);
+            else if (name == "Clock card" || name == "Free tray" || name == "Modal card") MintTheme.Apply(image, "PanelDark");
+            else if (name == "Time track" || name == "Combo track") MintTheme.Apply(image, "BarTrack");
+            else if (name == "Board well") { MintTheme.Apply(image, "PanelDark"); image.color = new Color(1, 1, 1, .22f); image.raycastTarget = false; }
+            return image;
+        }
+        Text Label(string value, Transform parent, float x, float y, float w, float h, int size, Color color, FontStyle style = FontStyle.Normal, TextAnchor align = TextAnchor.MiddleLeft)
+        {
+            var r = Rect("Text", parent, x, y, w, h); var text = r.gameObject.AddComponent<Text>();
+            text.font = font; text.text = value; text.fontSize = size; text.color = color == ink ? paper : color == muted ? mint : color; text.fontStyle = FontStyle.Normal; text.alignment = align;
+            text.raycastTarget = false; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Overflow; return text;
+        }
+        void Button(string title, Transform parent, float x, float y, float w, float h, Color color, Action action, Color? textColor = null)
+        {
+            var image = Panel(title, parent, x, y, w, h, color);
+            MintTheme.Apply(image, color == ink ? "PanelDark" : color == paper ? "PanelCream" : "ButtonMint");
+            var button = image.gameObject.AddComponent<Button>(); button.targetGraphic = image;
+            button.onClick.AddListener(() => action());
+            Label(title, image.transform, 12, 0, w - 24, h, 18, textColor ?? ink, FontStyle.Normal, TextAnchor.MiddleCenter).color = textColor ?? (color == ink ? paper : ink);
+        }
+        void Logo(Transform parent, float x, float y, float w, float h, int size)
+        {
+            Label("THE TEN!", parent, x + 4, y + 6, w, h, size, ink).color = new Color32(18, 48, 34, 255);
+            Label("THE TEN!", parent, x, y, w, h, size, paper);
+        }
+    }
+}

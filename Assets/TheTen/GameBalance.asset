@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 360cfa2936aa1234ab989288524f5df2, type: 3}
+  m_Name: GameBalance
+  m_EditorClassIdentifier: TheTen.Runtime::TheTen.GameBalance
+  InitialTime: 30
+  MatchScore: 10
+  ComboWindow: 3
+  MatchBonus: 3
+  ShuffleBonus: 8
+  ReviveTime: 30
+  MaxRemainingTime: 90
+  BoardClearBonus: 0
+  MaxStackHeight: 7
+  SolverNodeBudget: 12000
+  ShuffleAttempts: 6
+  TransitionSeconds: 0.8
+  MockAdSeconds: 2
+  AdOutcome: 0
+  UnavailablePolicy: 0
+  EnableMockCommerce: 1
+  EarlyZeroWeight: 0.08
+  EarlyNegativeWeight: 0.08
+  AdvancedZeroWeight: 0.05
+  AdvancedNegativeWeight: 0.05
+  AdvancedDoubleWeight: 0.05

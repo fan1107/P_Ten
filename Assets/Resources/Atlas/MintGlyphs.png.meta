@@ -1,0 +1,1859 @@
+fileFormatVersion: 2
+guid: 45abb3454d2367c4f81a6040a70f4fe6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4055616058448823881
+    second: MintGlyphs_0
+  - first:
+      213: 819352525029524783
+    second: MintGlyphs_1
+  - first:
+      213: 2370290568676412997
+    second: MintGlyphs_2
+  - first:
+      213: -8378111832472854595
+    second: MintGlyphs_3
+  - first:
+      213: -545590905456666906
+    second: MintGlyphs_4
+  - first:
+      213: 1006165995891267129
+    second: MintGlyphs_5
+  - first:
+      213: -8088933391835700292
+    second: MintGlyphs_6
+  - first:
+      213: -1398483041470733631
+    second: MintGlyphs_7
+  - first:
+      213: 9162895654986392095
+    second: MintGlyphs_8
+  - first:
+      213: -496486128434051454
+    second: MintGlyphs_9
+  - first:
+      213: 5612355471570316812
+    second: MintGlyphs_10
+  - first:
+      213: -5876155443025560266
+    second: MintGlyphs_11
+  - first:
+      213: 1115911389079553151
+    second: MintGlyphs_12
+  - first:
+      213: 6488915093833901029
+    second: MintGlyphs_13
+  - first:
+      213: 8881008174686041867
+    second: MintGlyphs_14
+  - first:
+      213: 6312206801971737557
+    second: MintGlyphs_15
+  - first:
+      213: 2549371613902533983
+    second: MintGlyphs_16
+  - first:
+      213: 4550904865864956675
+    second: MintGlyphs_17
+  - first:
+      213: 2059655035074921737
+    second: MintGlyphs_18
+  - first:
+      213: -983628743656977212
+    second: MintGlyphs_19
+  - first:
+      213: 2877710110402355129
+    second: MintGlyphs_20
+  - first:
+      213: 5353867635421453023
+    second: MintGlyphs_21
+  - first:
+      213: 8010261879373282153
+    second: MintGlyphs_22
+  - first:
+      213: 3461388263413649127
+    second: MintGlyphs_23
+  - first:
+      213: -626209486990620598
+    second: MintGlyphs_24
+  - first:
+      213: -3687566855971312671
+    second: MintGlyphs_25
+  - first:
+      213: -3584145578845585971
+    second: MintGlyphs_26
+  - first:
+      213: -1453710014198370855
+    second: MintGlyphs_27
+  - first:
+      213: 2623894405542230577
+    second: MintGlyphs_28
+  - first:
+      213: 5030821216671386941
+    second: MintGlyphs_29
+  - first:
+      213: -3393941897620737147
+    second: MintGlyphs_30
+  - first:
+      213: -8542002299533320235
+    second: MintGlyphs_31
+  - first:
+      213: 6266268681737895089
+    second: MintGlyphs_32
+  - first:
+      213: -3205438581528176452
+    second: MintGlyphs_33
+  - first:
+      213: 1481464058036530088
+    second: MintGlyphs_34
+  - first:
+      213: 2563929607095180290
+    second: MintGlyphs_35
+  - first:
+      213: -5050388364882912021
+    second: MintGlyphs_36
+  - first:
+      213: 1352898809077468047
+    second: MintGlyphs_37
+  - first:
+      213: 4088088490649562581
+    second: MintGlyphs_38
+  - first:
+      213: -467826086244667611
+    second: MintGlyphs_39
+  - first:
+      213: -6839960239991607598
+    second: MintGlyphs_40
+  - first:
+      213: 3968813405543518810
+    second: MintGlyphs_41
+  - first:
+      213: -6632587359182988070
+    second: MintGlyphs_42
+  - first:
+      213: 8838607142914456061
+    second: MintGlyphs_43
+  - first:
+      213: -6481031572428359009
+    second: MintGlyphs_44
+  - first:
+      213: -6122731861635328807
+    second: MintGlyphs_45
+  - first:
+      213: 8796992885931824208
+    second: MintGlyphs_46
+  - first:
+      213: -7274154050842182007
+    second: MintGlyphs_47
+  - first:
+      213: 1287797748071294052
+    second: MintGlyphs_48
+  - first:
+      213: 9181522234103050416
+    second: MintGlyphs_49
+  - first:
+      213: -2646052316043131046
+    second: MintGlyphs_50
+  - first:
+      213: 6598291067925300161
+    second: MintGlyphs_51
+  - first:
+      213: 5650580765836745941
+    second: MintGlyphs_52
+  - first:
+      213: -8591010895902221295
+    second: MintGlyphs_53
+  - first:
+      213: -3379978367820445675
+    second: MintGlyphs_54
+  - first:
+      213: 8849936734772514060
+    second: MintGlyphs_55
+  - first:
+      213: -6519649300639937457
+    second: MintGlyphs_56
+  - first:
+      213: 162002679797722606
+    second: MintGlyphs_57
+  - first:
+      213: 3844260623573297904
+    second: MintGlyphs_58
+  - first:
+      213: 3158017807176649427
+    second: MintGlyphs_59
+  - first:
+      213: 1689152363938651299
+    second: MintGlyphs_60
+  - first:
+      213: -6133618071288828399
+    second: MintGlyphs_61
+  - first:
+      213: 5376224047041703137
+    second: MintGlyphs_62
+  - first:
+      213: -526259195193198504
+    second: MintGlyphs_63
+  - first:
+      213: 7692677790916689076
+    second: MintGlyphs_64
+  - first:
+      213: -3621185165313168237
+    second: MintGlyphs_65
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: MintGlyphs_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 61
+        width: 14
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 946463d4151784830800000000000000
+      internalID: 4055616058448823881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_1
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 61
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f254438c7ccee5b00800000000000000
+      internalID: 819352525029524783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 61
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54e8a60c6b6f4e020800000000000000
+      internalID: 2370290568676412997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_3
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 61
+        width: 14
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbf55f07da7fabb80800000000000000
+      internalID: -8378111832472854595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_4
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 72
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e6529f46fbad68f0800000000000000
+      internalID: -545590905456666906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_5
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 63
+        width: 30
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9361d2274ae96fd00800000000000000
+      internalID: 1006165995891267129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_6
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb366d7efe55ebf80800000000000000
+      internalID: -8088933391835700292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_7
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c2aab05517979ce0800000000000000
+      internalID: -1398483041470733631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_8
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f122f651d05292f70800000000000000
+      internalID: 9162895654986392095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_9
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28687c62f702c19f0800000000000000
+      internalID: -496486128434051454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_10
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0e2b2cd09713ed40800000000000000
+      internalID: 5612355471570316812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_11
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 61
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63dbb7df1c3b37ea0800000000000000
+      internalID: -5876155443025560266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_12
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7446eafe738c7f00800000000000000
+      internalID: 1115911389079553151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_13
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e3e3a9e5e14d0a50800000000000000
+      internalID: 6488915093833901029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_14
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b07708b91edaf3b70800000000000000
+      internalID: 8881008174686041867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_15
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d3745494a6799750800000000000000
+      internalID: 6312206801971737557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_16
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f55ff17c9ff216320800000000000000
+      internalID: 2549371613902533983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_17
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30b3a702ddf082f30800000000000000
+      internalID: 4550904865864956675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_18
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9054c75875d559c10800000000000000
+      internalID: 2059655035074921737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_19
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4cc467f7ed27952f0800000000000000
+      internalID: -983628743656977212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_20
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bf1511491eafe720800000000000000
+      internalID: 2877710110402355129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_21
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fda91c79f32cc4a40800000000000000
+      internalID: 5353867635421453023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_22
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96bb5e53dba2a2f60800000000000000
+      internalID: 8010261879373282153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_23
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ee0a7e4942590030800000000000000
+      internalID: 3461388263413649127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_24
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48c1f41ac14f47f0800000000000000
+      internalID: -626209486990620598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_25
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1eb63586b7123dcc0800000000000000
+      internalID: -3687566855971312671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_26
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 51
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcd3f9de59e824ec0800000000000000
+      internalID: -3584145578845585971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_27
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dd2745b17263dbe0800000000000000
+      internalID: -1453710014198370855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_28
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13aba725f02f96420800000000000000
+      internalID: 2623894405542230577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_29
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3d423cfd3111d540800000000000000
+      internalID: 5030821216671386941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_30
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 583300473db46e0d0800000000000000
+      internalID: -3393941897620737147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_31
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5df1fb18a26b47980800000000000000
+      internalID: -8542002299533320235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_32
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bc742a7a2246f650800000000000000
+      internalID: 6266268681737895089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_33
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb85eaed79ef383d0800000000000000
+      internalID: -3205438581528176452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_34
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8aba6ce26b73f8410800000000000000
+      internalID: 1481464058036530088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_35
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20cd304b468e49320800000000000000
+      internalID: 2563929607095180290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_36
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bec536d4a8a69e9b0800000000000000
+      internalID: -5050388364882912021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_37
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 41
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8b8c148c4676c210800000000000000
+      internalID: 1352898809077468047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_38
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dda78792decbb830800000000000000
+      internalID: 4088088490649562581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_39
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52fa9b837a2f189f0800000000000000
+      internalID: -467826086244667611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_40
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2de2181c6649311a0800000000000000
+      internalID: -6839960239991607598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_41
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a52da31c3ce041730800000000000000
+      internalID: 3968813405543518810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_42
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adcd62210f054f3a0800000000000000
+      internalID: -6632587359182988070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_43
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df975a61e5a09aa70800000000000000
+      internalID: 8838607142914456061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_44
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9af0537f10ce06a0800000000000000
+      internalID: -6481031572428359009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_45
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d4924cbfcfa70ba0800000000000000
+      internalID: -6122731861635328807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_46
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 054da99db62351a70800000000000000
+      internalID: 8796992885931824208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_47
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98e351e4e630d0b90800000000000000
+      internalID: -7274154050842182007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_48
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46466549a3d2fd110800000000000000
+      internalID: 1287797748071294052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_49
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b0301d73d15b6f70800000000000000
+      internalID: 9181522234103050416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_50
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a57462d1075574bd0800000000000000
+      internalID: -2646052316043131046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_51
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c3025c54c6d19b50800000000000000
+      internalID: 6598291067925300161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_52
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dc9a5ab445ea6e40800000000000000
+      internalID: 5650580765836745941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_53
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11cdc387b1996c880800000000000000
+      internalID: -8591010895902221295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_54
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 518ce851597e711d0800000000000000
+      internalID: -3379978367820445675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_55
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0dcbc0429a41da70800000000000000
+      internalID: 8849936734772514060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_56
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 11
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4c8b3fe08d8585a0800000000000000
+      internalID: -6519649300639937457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_57
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 11
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eed2106349c8f3200800000000000000
+      internalID: 162002679797722606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_58
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0faab1c5bae895530800000000000000
+      internalID: 3844260623573297904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_59
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3da4f17b67883db20800000000000000
+      internalID: 3158017807176649427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_60
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ac13102023117710800000000000000
+      internalID: 1689152363938651299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_61
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11ea9e88cd201eaa0800000000000000
+      internalID: -6133618071288828399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_62
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec65dc494f2c9a40800000000000000
+      internalID: 5376224047041703137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_63
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 21
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 858f9badc0a52b8f0800000000000000
+      internalID: -526259195193198504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_64
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 22
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bc302b71b1e1ca60800000000000000
+      internalID: 7692677790916689076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MintGlyphs_65
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 12
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39c289b2747febdc0800000000000000
+      internalID: -3621185165313168237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      MintGlyphs_0: 4055616058448823881
+      MintGlyphs_1: 819352525029524783
+      MintGlyphs_10: 5612355471570316812
+      MintGlyphs_11: -5876155443025560266
+      MintGlyphs_12: 1115911389079553151
+      MintGlyphs_13: 6488915093833901029
+      MintGlyphs_14: 8881008174686041867
+      MintGlyphs_15: 6312206801971737557
+      MintGlyphs_16: 2549371613902533983
+      MintGlyphs_17: 4550904865864956675
+      MintGlyphs_18: 2059655035074921737
+      MintGlyphs_19: -983628743656977212
+      MintGlyphs_2: 2370290568676412997
+      MintGlyphs_20: 2877710110402355129
+      MintGlyphs_21: 5353867635421453023
+      MintGlyphs_22: 8010261879373282153
+      MintGlyphs_23: 3461388263413649127
+      MintGlyphs_24: -626209486990620598
+      MintGlyphs_25: -3687566855971312671
+      MintGlyphs_26: -3584145578845585971
+      MintGlyphs_27: -1453710014198370855
+      MintGlyphs_28: 2623894405542230577
+      MintGlyphs_29: 5030821216671386941
+      MintGlyphs_3: -8378111832472854595
+      MintGlyphs_30: -3393941897620737147
+      MintGlyphs_31: -8542002299533320235
+      MintGlyphs_32: 6266268681737895089
+      MintGlyphs_33: -3205438581528176452
+      MintGlyphs_34: 1481464058036530088
+      MintGlyphs_35: 2563929607095180290
+      MintGlyphs_36: -5050388364882912021
+      MintGlyphs_37: 1352898809077468047
+      MintGlyphs_38: 4088088490649562581
+      MintGlyphs_39: -467826086244667611
+      MintGlyphs_4: -545590905456666906
+      MintGlyphs_40: -6839960239991607598
+      MintGlyphs_41: 3968813405543518810
+      MintGlyphs_42: -6632587359182988070
+      MintGlyphs_43: 8838607142914456061
+      MintGlyphs_44: -6481031572428359009
+      MintGlyphs_45: -6122731861635328807
+      MintGlyphs_46: 8796992885931824208
+      MintGlyphs_47: -7274154050842182007
+      MintGlyphs_48: 1287797748071294052
+      MintGlyphs_49: 9181522234103050416
+      MintGlyphs_5: 1006165995891267129
+      MintGlyphs_50: -2646052316043131046
+      MintGlyphs_51: 6598291067925300161
+      MintGlyphs_52: 5650580765836745941
+      MintGlyphs_53: -8591010895902221295
+      MintGlyphs_54: -3379978367820445675
+      MintGlyphs_55: 8849936734772514060
+      MintGlyphs_56: -6519649300639937457
+      MintGlyphs_57: 162002679797722606
+      MintGlyphs_58: 3844260623573297904
+      MintGlyphs_59: 3158017807176649427
+      MintGlyphs_6: -8088933391835700292
+      MintGlyphs_60: 1689152363938651299
+      MintGlyphs_61: -6133618071288828399
+      MintGlyphs_62: 5376224047041703137
+      MintGlyphs_63: -526259195193198504
+      MintGlyphs_64: 7692677790916689076
+      MintGlyphs_65: -3621185165313168237
+      MintGlyphs_7: -1398483041470733631
+      MintGlyphs_8: 9162895654986392095
+      MintGlyphs_9: -496486128434051454
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

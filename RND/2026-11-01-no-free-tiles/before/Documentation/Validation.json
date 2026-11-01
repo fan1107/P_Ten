@@ -1,0 +1,19 @@
+{
+  "unityVersion": "6000.3.23f1",
+  "scene": "Assets/Scenes/TheTen.unity",
+  "editMode": {
+    "jobId": "314f51c8bd804513a9b5a5805a8f4ac3",
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0
+  },
+  "playMode": {
+    "jobId": "432972558eab43ab9e6efc870331b3b7",
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "finalConsoleErrorCount": 0,
+  "visualChecks": ["Mint Cream garden, pixel tiles and bitmap UI font", "Staggered 15/9/6 spatial terraces plus six free tiles", "Mint Cream home screen", "Spatial overlap raycast hits upper tile; tested in PlayMode", "Tile lift, fading matched tiles and pixel bursts; intermediate frame held only for screenshot inspection"],
+  "notValidated": ["Android device build", "iOS device build", "Real store purchase and restore", "Real rewarded ads", "Authenticated server time", "Global leaderboard"]
+}

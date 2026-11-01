@@ -1,0 +1,59 @@
+{
+  "unityVersion": "6000.3.23f1",
+  "scene": "Assets/Scenes/TheTen.unity",
+  "editMode": {
+    "jobId": "9e53b4ec343c48648cc995433d6349be",
+    "passed": 67,
+    "failed": 0,
+    "skipped": 0
+  },
+  "playMode": {
+    "jobId": "c3a1cf50a6b54c6d9872ca0678b806ce",
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "finalConsoleErrorCount": 0,
+  "guaranteedDoubleCheck": "250 boards across chapters 5/6/10/20/100 with zero random x2 weight contain exactly one x2 and retain a complete legal solution.",
+  "specialTileCheck": "50 EditMode tests passed: chapters 1-2 have only 1-9; chapters 3-4 allow 0/-1; chapter 5 onwards allows x2. Unlock boundaries and complete solutions verified.",
+  "chapterClearCheck": "2026-11-01: EditMode 39 passed for full board clear. PlayMode 10 passed including centered chapter header, popup waiting with frozen time/combo, double confirmation advancing exactly once, and score preservation. Popup card contrast subsequently verified visually.",
+  "visualChecks": [
+    "R&D: 36 stacked tiles in 18/12/6 terraces, no free tile tray",
+    "108x136 tiles inside 626-high board",
+    "Native screenshot: Captures/rnd-full-board.png",
+    "Spatial input, lift, clearing and combo regressions pass PlayMode tests"
+  ],
+  "toolingNote": "MCP screenshot helper triggered recursive PlayerLoop errors; restarted Play mode and captured with native ScreenCapture.CaptureScreenshot instead. No errors after restart.",
+  "notValidated": [
+    "Installation and gameplay on a physical Android device",
+    "iOS device build",
+    "Real store purchase and restore",
+    "Real rewarded ads",
+    "Authenticated server time",
+    "Global leaderboard"
+  ],
+  "celebrationCheck": "PlayMode 10 passed: board-clear and modal fireworks, no raycast blocking, cleanup on confirmation, combo popup centered on slider. Native captures: Captures/chapter-fireworks.png and Captures/combo-slider-center.png.",
+  "spatialRecoveryCheck": "56 EditMode and 11 PlayMode passed. Blocked remaining boards with 3/6/9/18/33/36 tiles regain complete legal paths within board bounds. UI test reproduces six remaining tiles with two exposed, resumes play with score/chapter/removal counters preserved, and clears recovered board via tile buttons.",
+  "timeBalanceCheck": "Initial time 30s, successful match +3s in defaults and asset. EditMode 56 and PlayMode 11 passed. Chapter confirmation test now explicitly restores foreground focus and waits boundedly for transition completion.",
+  "rankingUiCheck": "UI-only ranking: home Rank button opens screen, all five country tabs update titles, Back returns home without starting a run. Verified native screenshots Captures/rank-home.png and Captures/rank-world.png. Korean uses OS dynamic font; mobile font availability requires device validation. No server integration.",
+  "specialBonusCheck": "62 EditMode and 12 PlayMode passed: yellow 0, blue -1, red x2; successful special bonus x2 or x4 multiplied by combo, highest special bonus only, failed match grants nothing, time bonus remains 3s, fireworks do not block input and expire. Native visual checks: Captures/special-tile-colors.png and Captures/special-bonus-fireworks.png.",
+  "guaranteedAllSpecialsCheck": "67 EditMode tests passed, including 500 boards with zero random special weights at chapters 3/4/5/10/100. Required specials each appear, existing specials preserved, 36 tiles and full solution path retained. Automated editor input cleared chapters 1-5 and reached chapter 6: 60 matches, 3890 points, 90s remaining. This is not a human difficulty test. Visual review captured Captures/play-review-specials.png.",
+  "ruinsHomeCheck": "Reference-based home UI: generated HomeRuins background plus runtime tiles/text/score/buttons. PlayMode 13 passed including all menu routes and menu-motion toggle. Visual screenshot Captures/home-ruins-reference.png verified at 1080x1920. Background and icons stored in Assets/Resources/Atlas.",
+  "androidLocalApk": {
+    "jobId": "build-f203b416df",
+    "result": "Succeeded",
+    "errors": 0,
+    "warnings": 2,
+    "path": "Builds/Android/THE-TEN-Local.apk",
+    "bytes": 61260813,
+    "sha256": "064B7A0B1C76967273D0B60ECA6113A95B2175E83BD7B842E90B864E6BC4FEA0",
+    "package": "com.theten.local",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "architecture": "arm64-v8a",
+    "signature": "APK v2 verified",
+    "launcherCount": 1,
+    "internetPermission": false,
+    "physicalDeviceTested": false
+  }
+}

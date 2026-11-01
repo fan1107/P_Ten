@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MintCream
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 0
+      compressionQuality: 0
+      maxTextureSize: 0
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 0
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 21300000, guid: 2e52fa32357aa424c846b1f1c06f5f9d, type: 3}
+    - {fileID: 21300000, guid: 2f4598da18dcb764aa772975366c5f4f, type: 3}
+    - {fileID: 21300000, guid: 1b4f31bcb3b24dc469791bc1292249a0, type: 3}
+    - {fileID: 21300000, guid: 84b6c7cb2263cbe47b69c9df2fa9b486, type: 3}
+    - {fileID: 21300000, guid: c7fb6c8925b81fa42ae61417f2ce6376, type: 3}
+    - {fileID: 21300000, guid: 6d970adb8ed8fb2408042b624b41214c, type: 3}
+    - {fileID: 21300000, guid: 59d043cc70c795b43bf402088908b466, type: 3}
+    - {fileID: 21300000, guid: 23a2d2e3597360b46b9c5c6fe5e1bfcc, type: 3}
+    - {fileID: 21300000, guid: 074dfa1418a3dac4682dc4c58bdbc9a3, type: 3}
+    - {fileID: 21300000, guid: 7e15c9fd32d3ca04c95f92b90f434055, type: 3}
+    - {fileID: 21300000, guid: e19459f9bb3e3764aaa7ceadee243fae, type: 3}
+    - {fileID: 21300000, guid: 86bd1a7dfec671447a41f7d99b63c2ba, type: 3}
+    - {fileID: 21300000, guid: aa5fd1e37f265c343befadc2e1529a90, type: 3}
+    - {fileID: 21300000, guid: dc8a18cf195ae9b4ca9adb61b9e87dce, type: 3}
+    - {fileID: 21300000, guid: 04b80d876b0ff584fa9afddae3444ae4, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 2e52fa32357aa424c846b1f1c06f5f9d: 21300000
+    - aa5fd1e37f265c343befadc2e1529a90: 21300000
+    - 23a2d2e3597360b46b9c5c6fe5e1bfcc: 21300000
+    - 074dfa1418a3dac4682dc4c58bdbc9a3: 21300000
+    - 04b80d876b0ff584fa9afddae3444ae4: 21300000
+    - c7fb6c8925b81fa42ae61417f2ce6376: 21300000
+    - e19459f9bb3e3764aaa7ceadee243fae: 21300000
+    - 2f4598da18dcb764aa772975366c5f4f: 21300000
+    - 84b6c7cb2263cbe47b69c9df2fa9b486: 21300000
+    - 6d970adb8ed8fb2408042b624b41214c: 21300000
+    - 1b4f31bcb3b24dc469791bc1292249a0: 21300000
+    - 59d043cc70c795b43bf402088908b466: 21300000
+    - 86bd1a7dfec671447a41f7d99b63c2ba: 21300000
+    - 7e15c9fd32d3ca04c95f92b90f434055: 21300000
+    - dc8a18cf195ae9b4ca9adb61b9e87dce: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 2e52fa32357aa424c846b1f1c06f5f9d, type: 3}
+  - {fileID: 21300000, guid: aa5fd1e37f265c343befadc2e1529a90, type: 3}
+  - {fileID: 21300000, guid: 23a2d2e3597360b46b9c5c6fe5e1bfcc, type: 3}
+  - {fileID: 21300000, guid: 074dfa1418a3dac4682dc4c58bdbc9a3, type: 3}
+  - {fileID: 21300000, guid: 04b80d876b0ff584fa9afddae3444ae4, type: 3}
+  - {fileID: 21300000, guid: c7fb6c8925b81fa42ae61417f2ce6376, type: 3}
+  - {fileID: 21300000, guid: e19459f9bb3e3764aaa7ceadee243fae, type: 3}
+  - {fileID: 21300000, guid: 2f4598da18dcb764aa772975366c5f4f, type: 3}
+  - {fileID: 21300000, guid: 84b6c7cb2263cbe47b69c9df2fa9b486, type: 3}
+  - {fileID: 21300000, guid: 6d970adb8ed8fb2408042b624b41214c, type: 3}
+  - {fileID: 21300000, guid: 1b4f31bcb3b24dc469791bc1292249a0, type: 3}
+  - {fileID: 21300000, guid: 59d043cc70c795b43bf402088908b466, type: 3}
+  - {fileID: 21300000, guid: 86bd1a7dfec671447a41f7d99b63c2ba, type: 3}
+  - {fileID: 21300000, guid: 7e15c9fd32d3ca04c95f92b90f434055, type: 3}
+  - {fileID: 21300000, guid: dc8a18cf195ae9b4ca9adb61b9e87dce, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - TileIdle
+  - HomeChart
+  - HomePlay
+  - HomeTrophy
+  - HomePlayFrame
+  - PanelCream
+  - HomeBook
+  - TileBlocked
+  - PanelDark
+  - ButtonMint
+  - TileSelected
+  - BarTrack
+  - HomeGear
+  - HomeStore
+  - HomeIconFrame
+  m_RenderDataMap: {}
+  m_Tag: MintCream
+  m_IsVariant: 0
