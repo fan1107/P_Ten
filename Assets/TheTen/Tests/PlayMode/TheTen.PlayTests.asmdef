@@ -1,1 +1,1 @@
-{"name":"TheTen.PlayTests","references":["TheTen.Runtime","Unity.ugui"],"optionalUnityReferences":["TestAssemblies"]}
+{"name":"TheTen.PlayTests","references":["TheTen.Runtime","Unity.ugui","Unity.TextMeshPro"],"optionalUnityReferences":["TestAssemblies"]}

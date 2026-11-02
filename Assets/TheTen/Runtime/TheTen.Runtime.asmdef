@@ -1,1 +1,1 @@
-{"name":"TheTen.Runtime","references":["Unity.ugui","Unity.InputSystem"]}
+{"name":"TheTen.Runtime","references":["Unity.ugui","Unity.InputSystem","Unity.TextMeshPro"]}

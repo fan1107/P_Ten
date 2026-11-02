@@ -7,6 +7,8 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using TMPro;
+using Text = TMPro.TMP_Text;
 
 namespace TheTen.Tests
 {
@@ -78,9 +80,18 @@ namespace TheTen.Tests
         {
             Begin();
             var move = app.Run.Board.Available().Take(3).Select(t => t.Id).ToArray();
-            foreach (int id in move) app.Run.Board.Tiles[id].Value = 1;
+            app.Run.Board.Tiles[move[0]].Value = 0;
+            app.Run.Board.Tiles[move[1]].Value = -1;
+            app.Run.Board.Tiles[move[2]].Value = 2;
             app.SendMessage("RenderBoard"); yield return null;
             app.SendMessage("OnApplicationFocus", true);
+            var failedFaces = move.Select(id => app.GetComponentsInChildren<Button>()
+                .First(b => b.transform.parent.name.StartsWith("Tile " + id + " •")).GetComponent<Image>()).ToArray();
+            var colors = failedFaces.Select(f => f.color).ToArray();
+            var origins = failedFaces.Select(f => f.rectTransform.anchoredPosition).ToArray();
+            var modelPositions = move.Select(id => new Vector2(app.Run.Board.Tiles[id].X, app.Run.Board.Tiles[id].Y)).ToArray();
+            var timer = app.GetComponentsInChildren<Text>().Single(t => t.name == "Countdown");
+            var timerColor = timer.color;
             ClickTile(move[0]); ClickTile(move[1]);
             Assert.AreEqual(2, app.Run.Selection.Count);
             double time = app.Run.RemainingTime, survival = app.Run.TotalSurvivalTime;
@@ -96,7 +107,61 @@ namespace TheTen.Tests
             var labels = app.GetComponentsInChildren<Text>().Select(t => t.text).ToArray();
             Assert.Contains(app.Run.RemainingTime.ToString("0.0"), labels);
             Assert.Contains("NOT TEN   -3 SECONDS", labels);
-            Assert.Contains("·   +   ·   +   ·   =   10", labels);
+            Assert.AreEqual("0", app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").text);
+            Assert.AreEqual(TileVisual.MissColor, timer.color);
+            Assert.IsTrue(failedFaces.All(f => f.color == TileVisual.MissColor));
+            // Feedback does not lock input or turn a cancellation into another penalty.
+            ClickTile(move[0]); Assert.AreEqual(1, app.Run.Selection.Count);
+            ClickScreen(BoardScreenPoint(35, 500)); Assert.IsEmpty(app.Run.Selection);
+            Assert.AreEqual(time - 3, app.Run.RemainingTime);
+            float maxShake = 0, maxScale = 1, deadline = Time.realtimeSinceStartup + .25f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+                maxShake = Mathf.Max(maxShake, Mathf.Abs(failedFaces[0].rectTransform.anchoredPosition.x - origins[0].x));
+                maxScale = Mathf.Max(maxScale, timer.rectTransform.localScale.x);
+            }
+            Assert.Greater(maxShake, .5f); Assert.LessOrEqual(maxShake, 5);
+            Assert.Greater(maxScale, 1.03f); Assert.LessOrEqual(maxScale, 1.141f);
+            yield return new WaitForSecondsRealtime(TileVisual.MissDuration);
+            for (int i = 0; i < move.Length; i++)
+            {
+                Assert.AreEqual(colors[i], failedFaces[i].color, "Restore each special tile's original tint.");
+                Assert.AreEqual(origins[i], failedFaces[i].rectTransform.anchoredPosition);
+                Assert.AreEqual(modelPositions[i], new Vector2(app.Run.Board.Tiles[move[i]].X, app.Run.Board.Tiles[move[i]].Y));
+            }
+            Assert.AreEqual(timerColor, timer.color); Assert.AreEqual(Vector3.one, timer.rectTransform.localScale);
+            Assert.AreEqual(36, app.Run.Board.Remaining); Assert.AreEqual(0, app.Run.Score);
+            LogAssert.NoUnexpectedReceived();
+        }
+        [UnityTest] public IEnumerator RepeatedMissRestoresLowTimeColorAndNewRunResetsPulse()
+        {
+            Begin();
+            var move = app.Run.Board.Available().Take(3).Select(t => t.Id).ToArray();
+            foreach (int id in move) app.Run.Board.Tiles[id].Value = 1;
+            app.SendMessage("RenderBoard"); yield return null;
+            app.SendMessage("OnApplicationFocus", true);
+            var timer = app.GetComponentsInChildren<Text>().Single(t => t.name == "Countdown");
+            var normalColor = timer.color;
+            app.Run.Tick(app.Run.RemainingTime - 12);
+            foreach (int id in move) ClickTile(id);
+            yield return new WaitForSecondsRealtime(.12f);
+            double beforeSecondMiss = app.Run.RemainingTime;
+            foreach (int id in move) ClickTile(id);
+            Assert.AreEqual(beforeSecondMiss - 3, app.Run.RemainingTime);
+            Assert.AreEqual(TileVisual.MissColor, timer.color);
+            app.Run.Pause();
+            yield return new WaitForSecondsRealtime(TileVisual.MissDuration + .1f);
+            Assert.AreEqual(new Color32(243, 203, 111, 255), (Color32)timer.color);
+            Assert.AreEqual(Vector3.one, timer.rectTransform.localScale);
+            app.Run.Resume();
+            foreach (int id in move) ClickTile(id);
+            Assert.AreEqual(TileVisual.MissColor, timer.color);
+            app.StartRun();
+            Assert.AreEqual(normalColor, timer.color); Assert.AreEqual(Vector3.one, timer.rectTransform.localScale);
+            yield return null;
+            Assert.IsTrue(app.GetComponentsInChildren<TileVisual>().All(v => v.GetComponentsInChildren<Image>()
+                .Where(i => i.name == "Face").All(i => i.color == Color.white)));
             LogAssert.NoUnexpectedReceived();
         }
         [UnityTest] public IEnumerator EmptySpaceCancelsAllWhileRetapsAndMenuButtonsKeepTheirActions()
@@ -110,7 +175,7 @@ namespace TheTen.Tests
             ClickTile(move[0]); Assert.AreEqual(2, app.Run.Selection.Count);
             Assert.AreEqual("Background", ClickScreen(BoardScreenPoint(35, 500)).name);
             Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
-            Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "·   +   ·   +   ·   =   10"));
+            Assert.AreEqual("0", app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").text);
             ClickTile(move[0]); ClickTile(move[1]);
             ClickScreen(BoardScreenPoint(710, 1100), pointerId: 42);
             Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
@@ -174,7 +239,7 @@ namespace TheTen.Tests
             var effect = app.GetComponentsInChildren<ChapterFireworks>().Single();
             Assert.AreEqual("Special fireworks", effect.name);
             Assert.IsTrue(effect.GetComponentsInChildren<Image>().All(i => !i.raycastTarget));
-            Assert.IsTrue(app.GetComponentInChildren<ComboFeedback>().GetComponentsInChildren<Text>().Any(t => t.text.Contains("BONUS ×4")));
+            Assert.AreEqual("×1", app.GetComponentInChildren<ComboFeedback>().GetComponentInChildren<Text>().text);
             app.Run.Pause(); yield return new WaitForSecondsRealtime(2.2f);
             Assert.IsTrue(effect == null);
             LogAssert.NoUnexpectedReceived();
@@ -182,8 +247,23 @@ namespace TheTen.Tests
         [UnityTest] public IEnumerator RuinsHomeButtonsOpenMenusAndReturn()
         {
             Assert.IsTrue(app.IsHome);
-            foreach (string sprite in new[] { "HomeRuins", "HomePlay", "HomeTrophy", "HomeStore", "HomeBook", "HomeGear", "HomeChart" })
+            foreach (string sprite in new[] { "HomeRuins", "HomeRuinsMonument", "HomePlay", "HomeTrophy", "HomeStore", "HomeBook", "HomeGear", "HomeChart" })
                 Assert.IsNotNull(MintTheme.Sprite(sprite), sprite);
+            var backdrop = app.GetComponentsInChildren<Image>().Single(i => i.name == "Home ruins");
+            Assert.AreSame(MintTheme.Sprite("HomeRuinsMonument"), backdrop.sprite);
+            Assert.IsFalse(backdrop.transform.parent.GetComponentsInChildren<Image>().Any(i => i.name == "Home tile"));
+            Assert.IsFalse(backdrop.transform.parent.GetComponentsInChildren<Text>().Any(t =>
+                t.text.Contains("MAKE ROOM") || t.text.Contains("A LITTLE") || t.text.Contains("THREE TILES")));
+            var intro = app.GetComponentsInChildren<LetterWave>().Single(w => w.name == "Home introduction");
+            var letters = intro.GetComponentsInChildren<Text>();
+            Assert.AreEqual(LetterWave.Message, string.Concat(letters.Select(t => t.text)));
+            Assert.IsTrue(letters.All(t => t.fontSize == 36 && !t.raycastTarget));
+            Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)letters[0].color);
+            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[14].color);
+            Assert.AreEqual(letters[14].color, letters[15].color);
+            var initialScales = letters.Select(t => t.transform.localScale.x).ToArray();
+            yield return new WaitForSecondsRealtime(.14f);
+            Assert.IsTrue(letters.Select((t, i) => Mathf.Abs(t.transform.localScale.x - initialScales[i])).Any(delta => delta > .02f));
             Button("Rank button").onClick.Invoke();
             Assert.IsNotNull(Button("Rank tab 한국"));
             Button("BACK").onClick.Invoke();
@@ -193,12 +273,21 @@ namespace TheTen.Tests
             Button("Home settings").onClick.Invoke();
             Button("MENU MOTION: ON").onClick.Invoke(); Button("BACK").onClick.Invoke();
             Assert.IsEmpty(app.GetComponentsInChildren<HomeTileMotion>());
+            intro = app.GetComponentsInChildren<LetterWave>().Single(w => w.name == "Home introduction");
+            Assert.IsFalse(intro.enabled);
+            yield return new WaitForSecondsRealtime(.14f);
+            Assert.IsTrue(intro.GetComponentsInChildren<Text>().All(t => t.transform.localScale == Vector3.one));
+            Button("Home settings").onClick.Invoke(); Button("MENU MOTION: OFF").onClick.Invoke(); Button("BACK").onClick.Invoke();
+            intro = app.GetComponentsInChildren<LetterWave>().Single(w => w.name == "Home introduction");
+            Assert.IsTrue(intro.enabled);
             Button("Home records").onClick.Invoke();
             Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "YOUR RECORD"));
             Button("BACK").onClick.Invoke();
             Assert.IsTrue(app.IsHome); Assert.IsNull(app.Run);
             Begin(); yield return null;
             Assert.IsFalse(app.GetComponentsInChildren<Image>().Any(i => i.name == "Home ruins"));
+            Assert.IsFalse(app.GetComponentsInChildren<LetterWave>().Any(w => w.name == "Home introduction"));
+            Assert.IsTrue(app.GetComponentInChildren<LetterWave>().GetComponentsInChildren<Text>().All(t => t.fontSize == 28));
             LogAssert.NoUnexpectedReceived();
         }
         [UnityTest] public IEnumerator HomeToMatchThroughRealUiBindings()
@@ -211,18 +300,60 @@ namespace TheTen.Tests
             Assert.AreEqual(1, app.Run.SuccessCount);
             Assert.AreEqual(10, app.Run.Score);
             yield return null;
-            Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "SCORE  10"));
+            Assert.AreEqual("10", app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").text);
             var bar = app.GetComponentsInChildren<Image>().First(i => i.name == "Combo remaining");
             var timer = app.GetComponentsInChildren<Image>().First(i => i.name == "Time remaining");
             Assert.Greater(bar.rectTransform.rect.width, 0);
             Assert.Less(bar.rectTransform.anchoredPosition.y, timer.rectTransform.anchoredPosition.y);
             LogAssert.NoUnexpectedReceived();
         }
+        [UnityTest] public IEnumerator NumericScoreAndThickBarsTrackRemainingTimeAndRecovery()
+        {
+            Begin(); yield return null;
+            app.SendMessage("OnApplicationFocus", true); app.StartRun();
+            var score = app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score");
+            var timer = app.GetComponentsInChildren<Image>().Single(i => i.name == "Time remaining");
+            var combo = app.GetComponentsInChildren<Image>().Single(i => i.name == "Combo remaining");
+            Assert.AreEqual("0", score.text); Assert.AreEqual(TextAlignmentOptions.Center, score.alignment);
+            Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)score.color);
+            Assert.GreaterOrEqual(score.fontSize, 48);
+            Assert.AreEqual(360, score.rectTransform.anchoredPosition.x + score.rectTransform.rect.width * (.5f - score.rectTransform.pivot.x));
+            Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text.StartsWith("SCORE")
+                || t.text.Contains("MATCH TO START") || t.text.Contains("=   10") || t.text.Contains("→   10")));
+            Assert.AreEqual(22, timer.rectTransform.rect.height);
+            Assert.AreEqual(14, combo.rectTransform.rect.height);
+            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)combo.color);
+            Assert.AreEqual(624, timer.rectTransform.rect.width);
+            var levels = new[] { 24.7, 20, 10, 5.2 };
+            var colors = new[] { new Color32(119, 198, 104, 255), new Color32(244, 200, 79, 255),
+                new Color32(238, 101, 86, 255), new Color32(238, 101, 86, 255) };
+            for (int i = 0; i < levels.Length; i++)
+            {
+                app.Run.Tick(app.Run.RemainingTime - levels[i]); app.SendMessage("UpdateHud");
+                Assert.AreEqual(colors[i], (Color32)timer.color);
+                Assert.AreEqual(624 * levels[i] / balance.InitialTime, timer.rectTransform.rect.width, .01);
+            }
+            // Successful matches can earn time back across both warning thresholds.
+            var path = app.Run.Board.GuaranteedPath;
+            for (int i = 0; i < 5; i++)
+            {
+                foreach (int id in path[i]) Tap(id);
+                if (i == 1) Assert.AreEqual(colors[1], (Color32)timer.color);
+            }
+            Assert.AreEqual(colors[0], (Color32)timer.color);
+            Assert.AreEqual(app.Run.Score.ToString("N0"), score.text);
+            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)combo.color);
+            app.Run.Tick(1000); app.SendMessage("UpdateHud");
+            Assert.AreEqual(0, timer.rectTransform.rect.width); Assert.AreEqual(colors[3], (Color32)timer.color);
+            Assert.IsTrue(app.Run.Revive()); app.SendMessage("UpdateHud");
+            Assert.AreEqual(624, timer.rectTransform.rect.width); Assert.AreEqual(colors[0], (Color32)timer.color);
+            LogAssert.NoUnexpectedReceived();
+        }
         [UnityTest] public IEnumerator ChapterClearWaitsForConfirmationBeforeStartingNextBoard()
         {
             Begin();
             var header = app.GetComponentsInChildren<Text>().Single(t => t.text == "CHAPTER 01");
-            Assert.AreEqual(TextAnchor.MiddleCenter, header.alignment);
+            Assert.AreEqual(TextAlignmentOptions.Center, header.alignment);
             Assert.AreEqual(360, header.rectTransform.anchoredPosition.x + header.rectTransform.rect.width / 2);
             Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text == "THE TEN!"));
             foreach (var move in app.Run.Board.GuaranteedPath.ToList()) foreach (int id in move) Tap(id);
@@ -323,35 +454,128 @@ namespace TheTen.Tests
             Assert.IsNotEmpty(hits); Assert.AreSame(face.gameObject, hits[0].gameObject);
             LogAssert.NoUnexpectedReceived();
         }
-        [UnityTest] public IEnumerator ComboFeedbackAllowsRapidMatchesAndCleansUp()
+        [UnityTest] public IEnumerator ComboBadgeChangesTierPulsesAndResetsWithoutBlockingInput()
         {
-            Begin(); var path = app.Run.Board.GuaranteedPath;
-            foreach (int id in path[0]) Tap(id);
-            var bar = app.GetComponentsInChildren<Image>().First(i => i.name == "Combo remaining");
-            Color firstColor = bar.color;
-            for (int i = 1; i < 7; i++) foreach (int id in path[i]) Tap(id);
-            Assert.AreEqual(190, app.Run.Score);
-            Assert.AreEqual(1, app.GetComponentsInChildren<ComboFeedback>().Length);
+            Begin(); app.SendMessage("OnApplicationFocus", true);
+            var path = app.Run.Board.GuaranteedPath;
             var feedback = app.GetComponentInChildren<ComboFeedback>();
-            var track = app.GetComponentsInChildren<Image>().First(i => i.name == "Combo track");
-            var expectedCenter = track.rectTransform.anchoredPosition + new Vector2(track.rectTransform.rect.width / 2, -track.rectTransform.rect.height / 2);
-            Assert.AreEqual(expectedCenter, ((RectTransform)feedback.transform).anchoredPosition);
-            Assert.IsTrue(feedback.GetComponentsInChildren<Text>().Any(t => t.text == "+50"));
-            Assert.IsTrue(feedback.GetComponentsInChildren<Text>().Any(t => t.text == "×5"));
-            Assert.IsTrue(feedback.GetComponentsInChildren<Text>().Any(t => t.text.Contains("MAX COMBO")));
+            var badge = (RectTransform)feedback.transform;
+            var face = feedback.GetComponentInChildren<RoundedBadgeGraphic>();
+            Assert.IsNotNull(face.GetComponent<CanvasRenderer>());
+            var caption = feedback.GetComponentInChildren<Text>();
+            var score = app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score");
+            var bar = app.GetComponentsInChildren<Image>().Single(i => i.name == "Combo remaining");
+            var track = app.GetComponentsInChildren<Image>().Single(i => i.name == "Combo track");
+            Assert.Greater(badge.GetSiblingIndex(), track.transform.GetSiblingIndex());
+            Assert.Greater(badge.GetSiblingIndex(), bar.transform.GetSiblingIndex());
+            float trackCenter = track.rectTransform.anchoredPosition.y - track.rectTransform.rect.height / 2;
+            Assert.AreEqual(trackCenter, badge.anchoredPosition.y, .01f);
+            Assert.AreEqual(trackCenter, bar.rectTransform.anchoredPosition.y, .01f);
+            var timeTrack = app.GetComponentsInChildren<Image>().Single(i => i.name == "Time track");
+            float timeBottom = timeTrack.rectTransform.anchoredPosition.y - timeTrack.rectTransform.rect.height;
+            Assert.Less(badge.anchoredPosition.y + badge.rect.height * 1.16f / 2, timeBottom,
+                "The badge must clear the time bar even at peak scale.");
+            var factors = new[] { 1d, 1.5, 2, 2.5, 3, 4, 5 };
+            var expected = new[] { new Color32(245, 238, 205, 255), new Color32(245, 238, 205, 255),
+                new Color32(119, 198, 104, 255), new Color32(119, 198, 104, 255),
+                new Color32(112, 184, 255, 255), new Color32(246, 209, 95, 255), new Color32(238, 101, 86, 255) };
+            for (int i = 0; i < factors.Length; i++)
+            {
+                foreach (int id in path[i]) Tap(id);
+                Assert.AreEqual(factors[i], app.Run.ComboMultiplier);
+                Assert.AreEqual(expected[i], (Color32)face.color);
+                Assert.AreEqual(i == 6 ? "×5!!" : "×" + factors[i].ToString("0.#"), caption.text);
+                Assert.IsTrue(feedback.GetComponent<ScalePulse>().IsPlaying);
+                Assert.IsTrue(score.GetComponent<ScalePulse>().IsPlaying);
+                yield return new WaitForSecondsRealtime(.09f);
+                Assert.Greater(face.canvasRenderer.GetMesh().vertexCount, 0, "The rounded face must render, not only its caption.");
+                Assert.Greater(badge.localScale.x, 1.04f); Assert.LessOrEqual(badge.localScale.x, 1.161f);
+                Assert.Greater(score.rectTransform.localScale.x, 1.03f); Assert.LessOrEqual(score.rectTransform.localScale.x, 1.141f);
+            }
+            Assert.AreEqual(190, app.Run.Score); Assert.AreEqual("190", score.text);
+            Assert.AreEqual(1, app.GetComponentsInChildren<ComboFeedback>().Length);
             Assert.IsFalse(feedback.GetComponent<CanvasGroup>().blocksRaycasts);
             Assert.IsTrue(feedback.GetComponentsInChildren<Graphic>().All(g => !g.raycastTarget));
-            Assert.AreNotEqual(firstColor, bar.color);
-            app.Run.Pause();
-            yield return new WaitForSecondsRealtime(1.3f);
-            Assert.AreEqual(0, feedback.GetComponent<CanvasGroup>().alpha);
-            Assert.AreEqual(190, app.Run.Score);
-            Assert.AreEqual(ComboFeedback.TierColor(5), bar.color);
+            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)bar.color);
+            app.Run.Pause(); yield return new WaitForSecondsRealtime(ScalePulse.Duration + .1f);
+            Assert.AreEqual(Vector3.one, badge.localScale); Assert.AreEqual(Vector3.one, score.rectTransform.localScale);
+            Assert.AreEqual("×5!!", caption.text); Assert.AreEqual(1, feedback.GetComponent<CanvasGroup>().alpha);
+            app.Run.Resume(); app.Run.Tick(balance.ComboWindow + .01); app.SendMessage("UpdateHud");
+            Assert.AreEqual("×1", caption.text); Assert.AreEqual(expected[0], (Color32)face.color);
+            Assert.IsFalse(feedback.GetComponent<ScalePulse>().IsPlaying);
+            Assert.IsFalse(score.GetComponent<ScalePulse>().IsPlaying);
             app.StartRun();
-            Assert.AreEqual(0, feedback.GetComponent<CanvasGroup>().alpha);
-            Assert.AreEqual(ComboFeedback.TierColor(1), bar.color);
+            Assert.AreEqual("0", score.text); Assert.AreEqual("×1", caption.text);
+            Assert.AreEqual(Vector3.one, score.rectTransform.localScale);
             LogAssert.NoUnexpectedReceived();
         }
+        [UnityTest] public IEnumerator IntroWaveAndLargeBestScorePreserveSelectionWithoutOrderNumbers()
+        {
+            Begin(); app.SendMessage("OnApplicationFocus", true);
+            var intro = app.GetComponentInChildren<LetterWave>();
+            var letters = intro.GetComponentsInChildren<Text>();
+            Assert.AreEqual(LetterWave.Message, string.Concat(letters.Select(t => t.text)));
+            Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)letters[0].color);
+            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[14].color);
+            Assert.AreEqual(letters[14].color, letters[15].color);
+            Assert.IsTrue(letters.All(t => !t.raycastTarget));
+            var initial = letters.Select(t => t.transform.localScale.x).ToArray();
+            yield return new WaitForSecondsRealtime(.14f);
+            Assert.IsTrue(letters.Select((t, i) => Mathf.Abs(t.transform.localScale.x - initial[i])).Any(change => change > .02f));
+            Assert.IsTrue(letters.All(t => t.transform.localScale.x >= 1 && t.transform.localScale.x <= 1.221f));
+            Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text.Contains("REMOVED")));
+            var best = app.GetComponentsInChildren<Text>().Single(t => t.name == "Best score");
+            Assert.AreEqual(42, best.fontSize);
+            Assert.AreEqual(TextAlignmentOptions.Center, best.alignment);
+            var move = app.Run.Board.FindMove();
+            ClickTile(move[0]); ClickTile(move[1]);
+            CollectionAssert.AreEqual(new[] { move[0], move[1] }, app.Run.Selection);
+            foreach (int id in move.Take(2))
+            {
+                var tile = app.GetComponentsInChildren<TileVisual>().Single(v => v.name.StartsWith("Tile " + id + " •"));
+                var labels = tile.GetComponentsInChildren<Text>();
+                Assert.AreEqual(1, labels.Length); Assert.AreEqual(app.Run.Board.Tiles[id].Label, labels[0].text);
+            }
+            ClickTile(move[2]);
+            Assert.AreEqual("BEST 10 PTS", best.text);
+            Assert.IsEmpty(app.Run.Selection);
+            LogAssert.NoUnexpectedReceived();
+        }
+        [UnityTest] public IEnumerator NotoOutlinesRenderLatinSymbolsAndKoreanWithoutChangingPixelArt()
+        {
+            var font = Resources.Load<TMP_FontAsset>("Fonts/NotoSans-Bold SDF");
+            var outline = Resources.Load<Material>("Fonts/NotoSans-Outline");
+            var tileOutline = Resources.Load<Material>("Fonts/NotoSans-TileOutline");
+            Assert.IsNotNull(font); Assert.IsNotNull(outline); Assert.IsNotNull(tileOutline);
+            Assert.AreEqual("Noto Sans", font.faceInfo.familyName);
+            Assert.Greater(font.fallbackFontAssetTable[0].material.GetFloat("_WeightNormal"), 0,
+                "The regular Korean fallback needs enough face weight to remain visible inside the outline.");
+            Assert.Greater(outline.GetFloat("_OutlineWidth"), 0);
+            Assert.Greater(tileOutline.GetFloat("_OutlineWidth"), 0);
+            Assert.IsTrue(outline.IsKeywordEnabled("OUTLINE_ON"));
+            Assert.IsTrue(font.HasCharacters("0123456789×−→", out uint[] missing, true));
+            Assert.IsEmpty(app.GetComponentsInChildren<UnityEngine.UI.Text>(true));
+            Assert.IsTrue(app.GetComponentsInChildren<Text>().All(t => t.font == font && !t.raycastTarget));
+            var background = app.GetComponentsInChildren<Image>().Single(i => i.name == "Home ruins");
+            Assert.AreEqual("HomeRuinsMonument", background.sprite.texture.name);
+            Assert.AreEqual(FilterMode.Point, background.sprite.texture.filterMode);
+            Assert.AreEqual(FilterMode.Bilinear, font.atlasTexture.filterMode);
+            Button("Rank button").onClick.Invoke();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            var korean = app.GetComponentsInChildren<Text>().Single(t => t.text == "전 세계 랭킹");
+            korean.ForceMeshUpdate();
+            Assert.IsTrue(korean.textInfo.characterInfo.Take(korean.textInfo.characterCount)
+                .Where(c => c.character >= 0xAC00).All(c => c.fontAsset.faceInfo.familyName.Contains("Noto Sans CJK")));
+            Assert.Greater(korean.textInfo.characterCount, 0);
+            Button("BACK").onClick.Invoke();
+            Begin(); yield return null;
+            var number = app.GetComponentInChildren<TileVisual>().GetComponentInChildren<Text>();
+            Assert.AreSame(tileOutline, number.fontSharedMaterial);
+            Assert.AreSame(outline, app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").fontSharedMaterial);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest] public IEnumerator ReviveIconRowPreservesRunAcrossStoreAndFinishesThroughFlag()
         {
             Begin();

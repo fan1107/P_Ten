@@ -1,101 +1,61 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace TheTen
 {
-    // A single reusable, non-interactive popup. Rapid matches replace the previous
-    // award instead of stacking animations over the board or blocking tile input.
+    // Persistent status badge, centered vertically in front of the combo slider.
     public sealed class ComboFeedback : MonoBehaviour
     {
-        const float Duration = 1.15f;
-        RectTransform rect;
         CanvasGroup group;
-        Text heading, points, multiplier;
-        Image accent;
-        float age = Duration, strength;
-        public float Pulse => Mathf.Clamp01(1 - age / .32f);
+        RoundedBadgeGraphic face;
+        TMP_Text multiplier;
+        ScalePulse pulse;
+        double factor = 1;
+        bool active;
+        public float Pulse => pulse != null ? pulse.Strength : 0;
 
         public static Color TierColor(double value)
         {
-            if (value >= 5) return new Color32(166, 105, 231, 255);
-            if (value >= 4) return new Color32(222, 89, 151, 255);
-            if (value >= 3) return new Color32(235, 91, 89, 255);
-            if (value >= 2.5) return new Color32(243, 121, 70, 255);
-            if (value >= 2) return new Color32(245, 157, 65, 255);
-            if (value >= 1.5) return new Color32(245, 183, 76, 255);
-            return new Color32(243, 203, 111, 255);
+            if (value >= 5) return new Color32(238, 101, 86, 255);
+            if (value >= 4) return new Color32(246, 209, 95, 255);
+            if (value >= 3) return new Color32(112, 184, 255, 255);
+            if (value >= 2) return new Color32(119, 198, 104, 255);
+            return new Color32(245, 238, 205, 255);
         }
-
-        public void Initialize(Font font)
+        public void Initialize()
         {
-            rect = (RectTransform)transform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
+            var rect = (RectTransform)transform;
             rect.pivot = new Vector2(.5f, .5f);
-            rect.sizeDelta = new Vector2(390, 104);
-            rect.anchoredPosition = new Vector2(360, -309);
-            group = gameObject.AddComponent<CanvasGroup>();
-            group.blocksRaycasts = false; group.interactable = false;
-            Box("Popup shadow", 6, -8, 390, 104, new Color32(26, 51, 54, 40));
-            Box("Popup background", 0, 0, 390, 104, new Color32(26, 51, 54, 245));
-            accent = Box("Popup accent", 0, 0, 6, 104, Color.white);
-            heading = Caption("Award heading", font, 24, -10, 342, 23, 15);
-            points = Caption("Award points", font, 22, -32, 220, 67, 53);
-            multiplier = Caption("Award multiplier", font, 245, -32, 125, 67, 43);
-            Hide();
+            rect.anchoredPosition += new Vector2(rect.rect.width / 2, -rect.rect.height / 2);
+            group = gameObject.AddComponent<CanvasGroup>(); group.blocksRaycasts = false; group.interactable = false;
+            pulse = gameObject.AddComponent<ScalePulse>();
+            var faceObject = new GameObject("Combo badge face", typeof(RectTransform), typeof(RoundedBadgeGraphic));
+            var faceRect = (RectTransform)faceObject.transform; faceRect.SetParent(transform, false);
+            faceRect.anchorMin = Vector2.zero; faceRect.anchorMax = Vector2.one;
+            faceRect.offsetMin = faceRect.offsetMax = Vector2.zero;
+            face = faceObject.GetComponent<RoundedBadgeGraphic>(); face.raycastTarget = false;
+            var caption = new GameObject("Combo multiplier", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var textRect = (RectTransform)caption.transform; textRect.SetParent(transform, false);
+            textRect.anchorMin = textRect.anchorMax = textRect.pivot = new Vector2(.5f, .5f);
+            textRect.sizeDelta = new Vector2(rect.rect.width - 12, 42);
+            multiplier = caption.GetComponent<TextMeshProUGUI>();
+            UiTypography.Configure(multiplier, 34, new Color32(26, 51, 54, 255));
+            SetState(1, false); Hide();
         }
-
-        public void Show(int award, double factor, bool increased, int specialBonus = 1)
+        public void SetState(double value, bool hasCombo)
         {
-            age = 0; strength = Mathf.InverseLerp(1, 5, (float)factor);
-            var color = TierColor(factor);
-            points.text = "+" + award;
-            multiplier.text = "×" + factor.ToString("0.#");
-            heading.text = factor >= 5 ? "MAX COMBO!  /  POINTS" : increased ? "COMBO UP!  /  POINTS" : factor > 1 ? "COMBO!  /  POINTS" : "TEN!  /  POINTS";
-            if (specialBonus > 1) heading.text = "BONUS ×" + specialBonus + "  /  COMBO ×" + factor.ToString("0.#");
-            if (specialBonus > 1) { multiplier.text = "×" + (factor * specialBonus).ToString("0.#"); color = specialBonus == 4 ? new Color32(255, 120, 120, 255) : new Color32(255, 222, 115, 255); }
-            multiplier.color = accent.color = color;
-            group.alpha = 1;
-            Draw();
+            double next = hasCombo ? value : 1;
+            if (next > factor || hasCombo && !active) pulse.Play(1.16f);
+            else if (!hasCombo) pulse.ResetScale();
+            factor = next; active = hasCombo;
+            multiplier.text = next >= 5 ? "×5!!" : "×" + next.ToString("0.#");
+            face.color = TierColor(next); group.alpha = 1;
         }
         public void Hide()
         {
-            age = Duration;
             if (group != null) group.alpha = 0;
-            if (rect != null) rect.localScale = Vector3.one;
-        }
-        void Update()
-        {
-            if (age >= Duration) return;
-            age = Mathf.Min(Duration, age + Time.unscaledDeltaTime);
-            Draw();
-        }
-        void Draw()
-        {
-            float peak = 1.1f + .08f * strength;
-            float scale = age < .13f ? Mathf.Lerp(.72f, peak, Mathf.SmoothStep(0, 1, age / .13f))
-                : Mathf.Lerp(peak, 1, Mathf.SmoothStep(0, 1, (age - .13f) / .2f));
-            rect.localScale = Vector3.one * scale;
-            rect.anchoredPosition = new Vector2(360, -309);
-            group.alpha = 1 - Mathf.SmoothStep(0, 1, (age - .72f) / (Duration - .72f));
-        }
-        RectTransform Child(string name, float x, float y, float w, float h)
-        {
-            var go = new GameObject(name, typeof(RectTransform)); go.transform.SetParent(transform, false);
-            var r = (RectTransform)go.transform; r.anchorMin = r.anchorMax = r.pivot = new Vector2(0, 1);
-            r.anchoredPosition = new Vector2(x, y); r.sizeDelta = new Vector2(w, h); return r;
-        }
-        Image Box(string name, float x, float y, float w, float h, Color color)
-        {
-            var image = Child(name, x, y, w, h).gameObject.AddComponent<Image>();
-            if (name == "Popup background") { MintTheme.Apply(image, "PanelDark"); image.raycastTarget = false; return image; }
-            image.color = color; image.raycastTarget = false; return image;
-        }
-        Text Caption(string name, Font font, float x, float y, float w, float h, int size)
-        {
-            var text = Child(name, x, y, w, h).gameObject.AddComponent<Text>();
-            text.font = font; text.fontSize = size; text.fontStyle = FontStyle.Normal;
-            text.color = new Color32(245, 242, 228, 255); text.alignment = TextAnchor.MiddleLeft;
-            text.raycastTarget = false; return text;
+            if (pulse != null) pulse.ResetScale();
         }
     }
 }

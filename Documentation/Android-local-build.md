@@ -1,15 +1,17 @@
 # THE TEN! 로컬 Android APK
 
-2026-11-02 `LocalApkBuild.cs`, `ProjectSettings.asset`, `EditorBuildSettings.asset`, AndroidManifest 및 폰트 리소스를 대조했다.
-아래 빌드 결과는 기존 검증 기록이며, 이번 문서 점검에서 APK를 다시 빌드하거나 서명을 검증한 것은 아니다.
+2026-11-02 12:18 KST에 최신 로비·콤보·점수·페널티 UI를 포함한 APK를 빌드했다.
+Unity MCP 빌드 작업 `build-cd609317b1`은 355.2초 후 성공했다. 오류 0건, 경고 21건이다.
+경고는 Unity 패키지의 셰이더 정밀도 변환 18건, 진단용 디버그 심볼 설정 1건, 빌드 중 일시적인 MCP 연결 종료 2건이다.
+소스 코드 컴파일 오류는 없으며 MCP 연결도 복구됐다.
 
-2026-11-01 빌드 성공 기록은 `Documentation/Validation.json`의 `androidLocalApk`에 있다.
-기록상 오류 0건·경고 2건, APK 61,260,813 bytes, APK v2 서명 검증 통과, 실행 진입점 1개, 인터넷 권한 없음이다.
-현재 AndroidManifest는 GameActivity를 진입점으로 선언하며 INTERNET/ACCESS_NETWORK_STATE 권한을 모두 제거하도록 설정되어 있다.
-2026-11-02 확인 시 `Builds/Android/THE-TEN-Local.apk`는 작업 폴더에 없다. `Builds/`는 Git 추적 제외 대상이다.
-실제 Android 기기 설치 및 실행은 검증 기록상 미수행 상태다.
+설치 파일은 59,878,906 bytes(약 59.9 MB)다. BuildReport의 전체 산출물 크기 930.03 MB는 보조 파일까지 포함한 값으로 APK 파일 크기와 다르다.
+SDK 도구로 APK v2 서명, zipalign의 16KB 네이티브 라이브러리 페이지 정렬 검사, 앱 ID/버전/SDK/ARM64 및 GameActivity 실행 진입점 1개를 확인했다.
+INTERNET/ACCESS_NETWORK_STATE 권한은 없다. 패키징 보고서에서 새 `HomeRuinsMonument.png`와 보존된 `HomeRuins.png` 모두 포함된 것을 확인했다.
+실제 Android 기기 설치 및 실행은 아직 수행하지 않았다. `Builds/`는 Git 추적 제외 대상이다.
 
-- 기록된 출력 경로 / 재빌드 저장 위치: `Builds/Android/THE-TEN-Local.apk`
+- 출력 경로: `Builds/Android/THE-TEN-Local.apk`
+- SHA-256: `E94B19B61EF1DCE99013844E3E5BCBD31249729CB5C449B9AAF3C7313F61F3A7`
 - 앱 ID: `com.theten.local`, 버전 `0.1.0` / 코드 `1`
 - Android 8.0(API 26) 이상, 타깃 API 35, ARM64. IL2CPP, 세로 화면.
 - 개발 서버 없이 실행한다. 최고 점수와 테스트 구매 상태는 기기 내부 PlayerPrefs에 저장한다.

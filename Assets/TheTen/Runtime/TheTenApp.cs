@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using TMPro;
 
 namespace TheTen
 {
@@ -17,28 +18,32 @@ namespace TheTen
         public ReviveTicketManager Tickets { get; private set; }
         public bool IsHome { get; private set; } = true;
         readonly Dictionary<int, Image> faces = new Dictionary<int, Image>();
-        readonly Dictionary<int, Text> numbers = new Dictionary<int, Text>();
-        readonly Dictionary<int, Text> orderLabels = new Dictionary<int, Text>();
+        readonly Dictionary<int, TMP_Text> numbers = new Dictionary<int, TMP_Text>();
         readonly Dictionary<int, TileVisual> tileVisuals = new Dictionary<int, TileVisual>();
         readonly Color ink = new Color32(26, 51, 54, 255);
         readonly Color mint = new Color32(192, 225, 203, 255);
         readonly Color paper = new Color32(245, 242, 228, 255);
         readonly Color muted = new Color32(116, 138, 130, 255);
         readonly Color gold = new Color32(243, 203, 111, 255);
-        Font font;
-        Font rankingFont;
-        bool ownsRankingFont;
+        readonly Color timeGreen = new Color32(119, 198, 104, 255);
+        readonly Color timeYellow = new Color32(244, 200, 79, 255);
+        readonly Color timeRed = new Color32(238, 101, 86, 255);
+        readonly Color comboPurple = new Color32(178, 121, 237, 255);
+        TMP_FontAsset font;
         Canvas canvas;
         RectTransform root, boardRoot, boardEffectsRoot, overlay;
-        Text timerText, chapterText, equationText, statsText, toastText, lifeText, comboText, scoreText;
+        TMP_Text timerText, chapterText, bestText, toastText, lifeText, scoreText;
         Image timeFill, comboFill;
         ComboFeedback comboFeedback;
+        ScalePulse scorePulse;
+        int displayedScore;
         MockServerClock mockClock;
         IRewardedAdService ads;
         LocalRanking ranking;
         string runId;
         bool operationBusy, transitionBusy, submitted, appSuspended;
         float refreshIn, toastUntil;
+        float penaltyStartedAt = float.NegativeInfinity;
         RunState renderedState;
         bool destroyed;
 
@@ -46,8 +51,7 @@ namespace TheTen
         {
             if (Balance == null) Balance = ScriptableObject.CreateInstance<GameBalance>();
             ranking = new LocalRanking(SaveNamespace);
-            font = Resources.Load<Font>("Atlas/MintPixel");
-            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font = UiTypography.Font;
             ITrustedServerClock clock;
             IPurchaseGateway purchase;
             if (Balance.EnableMockCommerce)
@@ -59,7 +63,7 @@ namespace TheTen
             await Tickets.RestoreAsync();
             if (!destroyed && IsHome) ShowHome();
         }
-        void OnDestroy() { destroyed = true; if (ownsRankingFont && rankingFont != null) Destroy(rankingFont); }
+        void OnDestroy() { destroyed = true; }
         void Update()
         {
             if (canvas == null) return;
@@ -110,36 +114,50 @@ namespace TheTen
         }
         void BuildGame()
         {
-            chapterText = Label("CHAPTER 01", root, 110, 43, 500, 64, 38, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            chapterText = Label("CHAPTER 01", root, 110, 32, 500, 64, 44, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Rect("Play introduction", root, 90, 107, 540, 36).gameObject.AddComponent<LetterWave>().Initialize(font);
             Button("Ⅱ", root, 614, 43, 64, 64, paper, () => { if (Run != null && Run.State == RunState.Playing) { Run.Pause(); ShowPause(); } });
             Panel("Clock card", root, 40, 155, 640, 125, ink);
-            lifeText = Label("LIFE 1 / 2", root, 440, 174, 215, 25, 18, mint, align: TextAnchor.MiddleRight);
-            timerText = Label(Balance.InitialTime.ToString("0.0"), root, 60, 205, 300, 58, 47, paper, FontStyle.Bold);
-            Label("SECONDS LEFT", root, 373, 228, 280, 22, 15, mint, align: TextAnchor.MiddleRight);
-            Panel("Time track", root, 40, 274, 640, 20, mint);
-            timeFill = Panel("Time remaining", root, 48, 280, 624, 8, new Color32(185, 220, 137, 255));
-            Panel("Combo track", root, 40, 300, 640, 18, mint);
-            comboFill = Panel("Combo remaining", root, 48, 305, 0, 8, gold);
-            comboText = Label("COMBO / MATCH TO START", root, 42, 324, 360, 25, 15, ink, FontStyle.Bold);
-            scoreText = Label("SCORE  0", root, 405, 324, 273, 25, 19, ink, FontStyle.Bold, TextAnchor.MiddleRight);
-            equationText = Label("·   +   ·   +   ·   =   10", root, 40, 357, 640, 38, 25, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
-            Label("THE STACK", root, 45, 400, 340, 25, 16, muted, FontStyle.Bold);
-            Label("UNCOVER YOUR NEXT MOVE", root, 300, 400, 375, 25, 13, muted, align: TextAnchor.MiddleRight);
+            lifeText = Label("LIFE 1 / 2", root, 440, 165, 215, 32, 22, mint, align: TextAnchor.MiddleRight);
+            timerText = Label(Balance.InitialTime.ToString("0.0"), root, 60, 179, 300, 80, 64, paper, FontStyle.Bold);
+            timerText.name = "Countdown";
+            timerText.rectTransform.pivot = new Vector2(0, .5f);
+            timerText.rectTransform.anchoredPosition += new Vector2(0, -40);
+            Label("SECONDS LEFT", root, 373, 230, 280, 28, 20, mint, align: TextAnchor.MiddleRight);
+            Panel("Time track", root, 40, 274, 640, 34, mint);
+            timeFill = Panel("Time remaining", root, 48, 280, 624, 22, timeGreen);
+            const float comboCenterY = 343;
+            Panel("Combo track", root, 40, comboCenterY - 13, 640, 26, mint);
+            comboFill = Panel("Combo remaining", root, 48, comboCenterY - 7, 0, 14, comboPurple);
+            // Keep the fill centered on the badge as its thickness pulses.
+            comboFill.rectTransform.pivot = new Vector2(0, .5f);
+            comboFill.rectTransform.anchoredPosition = new Vector2(48, -comboCenterY);
+            comboFeedback = Rect("Combo badge", root, 42, comboCenterY - 27, 152, 54).gameObject.AddComponent<ComboFeedback>();
+            comboFeedback.Initialize();
+            scoreText = Label("0", root, 40, 358, 640, 66, 60, new Color32(246, 209, 95, 255), align: TextAnchor.MiddleCenter);
+            scoreText.name = "Run score";
+            scoreText.textWrappingMode = TextWrappingModes.NoWrap;
+            scoreText.rectTransform.pivot = new Vector2(.5f, .5f);
+            scoreText.rectTransform.anchoredPosition += new Vector2(320, -33);
+            scorePulse = scoreText.gameObject.AddComponent<ScalePulse>();
+            Label("THE STACK", root, 45, 414, 250, 28, 22, muted, FontStyle.Bold);
+            Label("UNCOVER YOUR NEXT MOVE", root, 300, 414, 375, 28, 19, muted, align: TextAnchor.MiddleRight);
             Panel("Board well", root, 30, BoardModel.BoardTop, 660, BoardModel.BoardBottom - BoardModel.BoardTop, new Color32(205, 220, 199, 255));
             boardRoot = Rect("Layered tiles", root, 0, 0, 720, 1280);
             boardEffectsRoot = Rect("Tile effects", root, 0, 0, 720, 1280);
-            statsText = Label("0 / " + BoardModel.TileCount + " REMOVED", root, 42, 1065, 636, 30, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
-            toastText = Label("", root, 35, 1105, 650, 38, 20, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            bestText = Label("BEST 0 PTS", root, 42, 1070, 636, 55, 42, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            bestText.name = "Best score";
+            toastText = Label("", root, 35, 1127, 650, 28, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
             Button("HOW TO PLAY", root, 42, 1165, 302, 59, paper, ShowHelp);
             Button("LAB / MOCK", root, 362, 1165, 316, 59, paper, ShowLab);
-            Label("PROTOTYPE  /  LOCAL BEST  /  NO REAL PAYMENTS", root, 30, 1244, 660, 22, 12, muted, align: TextAnchor.MiddleCenter);
-            comboFeedback = Rect("Combo award", root, 0, 0, 390, 104).gameObject.AddComponent<ComboFeedback>();
-            comboFeedback.Initialize(font);
+            Label("PROTOTYPE  /  LOCAL BEST  /  NO REAL PAYMENTS", root, 30, 1240, 660, 24, 16, muted, align: TextAnchor.MiddleCenter);
         }
         public void StartRun()
         {
             if (operationBusy || transitionBusy) return;
             ClearOverlay(); IsHome = false; submitted = false;
+            penaltyStartedAt = float.NegativeInfinity;
+            displayedScore = 0; scorePulse.ResetScale();
             comboFeedback.Hide();
             foreach (var effect in GetComponentsInChildren<ChapterFireworks>()) Destroy(effect.gameObject);
             runId = Guid.NewGuid().ToString("N");
@@ -149,12 +167,12 @@ namespace TheTen
         public void SelectTile(int id)
         {
             if (IsHome || operationBusy || overlay != null) return;
-            double previousMultiplier = Run.ComboMultiplier;
+            // The model clears a failed selection immediately; keep its IDs for visual feedback.
+            int[] attempt = Run.Selection.Count == 2 ? new[] { Run.Selection[0], Run.Selection[1], id } : null;
             var result = Run.Select(id);
             if (result == SelectionResult.Ten)
             {
                 if (Run.State == RunState.BoardTransition) ChapterFireworks.Play(root, false);
-                comboFeedback.Show(Run.LastMatchScore, Run.ComboMultiplier, Run.ComboMultiplier > previousMultiplier, Run.LastMatchBonusMultiplier);
                 if (Run.LastMatchBonusMultiplier > 1)
                 {
                     var tile = Run.Board.Tiles[id];
@@ -162,7 +180,13 @@ namespace TheTen
                 }
                 toastText.text = "";
             }
-            else if (result == SelectionResult.Miss) Toast("NOT TEN   -" + Balance.MissPenalty.ToString("0.#") + " SECONDS");
+            else if (result == SelectionResult.Miss)
+            {
+                foreach (int tileId in attempt)
+                    if (tileVisuals.TryGetValue(tileId, out var visual) && visual != null) visual.ShowMiss();
+                penaltyStartedAt = Time.unscaledTime;
+                Toast("NOT TEN   -" + Balance.MissPenalty.ToString("0.#") + " SECONDS");
+            }
             RefreshFaces(); UpdateHud();
         }
         public void OnPointerClick(PointerEventData eventData)
@@ -176,7 +200,7 @@ namespace TheTen
         {
             foreach (Transform child in boardRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             foreach (Transform child in boardEffectsRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
-            faces.Clear(); numbers.Clear(); orderLabels.Clear(); tileVisuals.Clear();
+            faces.Clear(); numbers.Clear(); tileVisuals.Clear();
             foreach (var tile in Run.Board.Tiles.OrderBy(t => t.Layer).ThenBy(t => t.Y).ThenBy(t => t.X))
             {
                 if (tile.Removed) continue;
@@ -190,8 +214,10 @@ namespace TheTen
                 button.onClick.AddListener(() => SelectTile(id));
                 button.transition = Selectable.Transition.None;
                 faces[id] = face;
-                numbers[id] = Label(tile.Label, face.transform, 5, 12, BoardModel.TileWidth - 10, 80, 44, ink, FontStyle.Normal, TextAnchor.MiddleCenter);
-                orderLabels[id] = Label("", face.transform, 12, 84, BoardModel.TileWidth - 24, 18, 11, muted, align: TextAnchor.MiddleCenter);
+                numbers[id] = Label(tile.Label, face.transform, 5, 12, BoardModel.TileWidth - 10, 80, 56, ink, FontStyle.Normal, TextAnchor.MiddleCenter);
+                numbers[id].textWrappingMode = TextWrappingModes.NoWrap;
+                numbers[id].color = ink;
+                UiTypography.ApplyOutline(numbers[id]);
                 var visual = card.gameObject.AddComponent<TileVisual>();
                 visual.Initialize(face, shadow, numbers[id], boardEffectsRoot, Run.Board.IsAvailable(id));
                 tileVisuals[id] = visual;
@@ -208,33 +234,33 @@ namespace TheTen
                 if (Run.Board.Tiles[id].Removed) { visual.ClearWithSparkles(); continue; }
                 bool available = Run.Board.IsAvailable(id), selected = Run.Selection.Contains(id);
                 visual.SetState(available, selected);
-                orderLabels[id].text = selected ? (Run.Selection.IndexOf(id) + 1).ToString("00") : "";
-                orderLabels[id].color = ink;
             }
         }
         void UpdateHud()
         {
             timerText.text = Run.RemainingTime.ToString("0.0");
-            timerText.color = Run.RemainingTime <= 10 ? gold : paper;
+            float penalty = Mathf.Clamp01((Time.unscaledTime - penaltyStartedAt) / TileVisual.MissDuration);
+            float tint = 1 - Mathf.SmoothStep(0, 1, (penalty - .18f) / .82f);
+            float pulseSize = penalty < .2f ? Mathf.SmoothStep(0, 1, penalty / .2f)
+                : 1 - Mathf.SmoothStep(0, 1, (penalty - .2f) / .8f);
+            timerText.color = Color.Lerp(Run.RemainingTime <= 10 ? gold : paper, TileVisual.MissColor, tint);
+            timerText.rectTransform.localScale = Vector3.one * (1 + .14f * pulseSize);
             chapterText.text = "CHAPTER " + Run.Chapter.ToString("00");
             lifeText.text = Run.ReviveUsed ? "LIFE 2 / 2" : "LIFE 1 / 2";
-            float max = Balance.MaxRemainingTime > 0 ? Balance.MaxRemainingTime : Mathf.Max(Balance.InitialTime, (float)Run.RemainingTime);
-            timeFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 624 * Mathf.Clamp01((float)Run.RemainingTime / max));
+            // A fresh life starts with a full bar. Earned time above that stays visible in the numeral.
+            float timeRange = Mathf.Max(1, Run.ReviveUsed ? Balance.ReviveTime : Balance.InitialTime);
+            float remaining = Mathf.Clamp01((float)Run.RemainingTime / timeRange);
+            timeFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 624 * remaining);
+            timeFill.color = remaining > 2f / 3 ? timeGreen : remaining > 1f / 3 ? timeYellow : timeRed;
             comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 624 * Mathf.Clamp01((float)(Run.ComboRemaining / Math.Max(.1, Balance.ComboWindow))));
+            comboFeedback.SetState(Run.ComboMultiplier, Run.ComboRemaining > 0);
             float pulse = Run.ComboRemaining > 0 ? comboFeedback.Pulse : 0;
-            comboFill.color = Color.Lerp(ComboFeedback.TierColor(Run.ComboMultiplier), Color.white, pulse * .2f);
-            comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 8 + 2 * pulse);
-            comboText.text = Run.ComboRemaining > 0 ? "COMBO ×" + Run.ComboMultiplier.ToString("0.#") + "   /   " + Run.ComboRemaining.ToString("0.0") + "s" : "COMBO  /  MATCH TO START";
-            scoreText.text = "SCORE  " + Run.Score.ToString("N0");
-            string expression = "";
-            for (int i = 0; i < Run.Selection.Count; i++)
-            {
-                var tile = Run.Board.Tiles[Run.Selection[i]];
-                if (tile.IsDouble) expression = "(" + expression + ") × 2";
-                else expression += (i > 0 ? " + " : "") + tile.Label;
-            }
-            equationText.text = Run.Selection.Count == 0 ? "·   +   ·   +   ·   =   10" : expression + "   →   10";
-            statsText.text = (BoardModel.TileCount - Run.Board.Remaining) + " / " + BoardModel.TileCount + " REMOVED    •    BEST  " + Math.Max(Run.Score, ranking.BestScore).ToString("N0") + " PTS";
+            comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 14 + 2 * pulse);
+            scoreText.text = Run.Score.ToString("N0");
+            if (Run.Score > displayedScore) scorePulse.Play();
+            else if (Run.Score < displayedScore) scorePulse.ResetScale();
+            displayedScore = Run.Score;
+            bestText.text = "BEST " + Math.Max(Run.Score, ranking.BestScore).ToString("N0") + " PTS";
         }
         IEnumerator Transition()
         {
@@ -267,19 +293,11 @@ namespace TheTen
         void Toast(string message) { toastText.text = message; toastUntil = Time.unscaledTime + 2.5f; }
 
         void ShowHome() { BuildRuinsHome(); }
-        Text KoreanLabel(string text, Transform parent, float x, float y, float w, float h, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft)
+        TMP_Text KoreanLabel(string text, Transform parent, float x, float y, float w, float h, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft)
         {
-            if (rankingFont == null)
-            {
-                rankingFont = Resources.Load<Font>("Fonts/NotoSansCJKkr-Regular");
-                if (rankingFont == null)
-                {
-                    rankingFont = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Arial" }, 32);
-                    ownsRankingFont = true;
-                }
-            }
             var label = Label(text, parent, x, y, w, h, size, color, align: align);
-            label.font = rankingFont; label.color = color;
+            label.color = color;
+            UiTypography.ApplyOutline(label);
             return label;
         }
         void PixelTrophy(Transform parent, float x, float y)
@@ -322,7 +340,8 @@ namespace TheTen
             MintTheme.Apply(personal, "PanelCream");
             KoreanLabel("내 기기 최고 점수", personal.transform, 24, 15, 320, 34, 22, ink);
             KoreanLabel("세계·국가 순위는 연결 후 표시됩니다", personal.transform, 24, 62, 470, 25, 16, ink);
-            Label(ranking.BestScore.ToString("N0"), personal.transform, 330, 12, 230, 42, 30, gold, align: TextAnchor.MiddleRight).color = ink;
+            var localBest = Label(ranking.BestScore.ToString("N0"), personal.transform, 330, 12, 230, 42, 30, gold, align: TextAnchor.MiddleRight);
+            localBest.color = ink; UiTypography.ApplyOutline(localBest);
             Button("BACK", overlay, 80, 1110, 560, 70, ink, ShowHome, paper);
         }
         void Modal(string title, string description, bool home = false)
@@ -472,11 +491,12 @@ namespace TheTen
             else if (name == "Board well") { MintTheme.Apply(image, "PanelDark"); image.color = new Color(1, 1, 1, .22f); image.raycastTarget = false; }
             return image;
         }
-        Text Label(string value, Transform parent, float x, float y, float w, float h, int size, Color color, FontStyle style = FontStyle.Normal, TextAnchor align = TextAnchor.MiddleLeft)
+        TMP_Text Label(string value, Transform parent, float x, float y, float w, float h, int size, Color color, FontStyle style = FontStyle.Normal, TextAnchor align = TextAnchor.MiddleLeft)
         {
-            var r = Rect("Text", parent, x, y, w, h); var text = r.gameObject.AddComponent<Text>();
-            text.font = font; text.text = value; text.fontSize = size; text.color = color == ink ? paper : color == muted ? mint : color; text.fontStyle = FontStyle.Normal; text.alignment = align;
-            text.raycastTarget = false; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Overflow; return text;
+            var r = Rect("Text", parent, x, y, w, h); var text = r.gameObject.AddComponent<TextMeshProUGUI>();
+            UiTypography.Configure(text, size, color == ink ? paper : color == muted ? mint : color, align, true);
+            text.text = value;
+            return text;
         }
         void Button(string title, Transform parent, float x, float y, float w, float h, Color color, Action action, Color? textColor = null)
         {
@@ -484,7 +504,9 @@ namespace TheTen
             MintTheme.Apply(image, color == ink ? "PanelDark" : color == paper ? "PanelCream" : "ButtonMint");
             var button = image.gameObject.AddComponent<Button>(); button.targetGraphic = image;
             button.onClick.AddListener(() => action());
-            Label(title, image.transform, 12, 0, w - 24, h, 18, textColor ?? ink, FontStyle.Normal, TextAnchor.MiddleCenter).color = textColor ?? (color == ink ? paper : ink);
+            var label = Label(title, image.transform, 12, 0, w - 24, h, 25, textColor ?? ink, FontStyle.Normal, TextAnchor.MiddleCenter);
+            label.color = textColor ?? (color == ink ? paper : ink);
+            UiTypography.ApplyOutline(label);
         }
         void Logo(Transform parent, float x, float y, float w, float h, int size)
         {

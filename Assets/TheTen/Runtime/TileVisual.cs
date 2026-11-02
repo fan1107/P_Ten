@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace TheTen
 {
@@ -7,10 +8,12 @@ namespace TheTen
     public sealed class TileVisual : MonoBehaviour
     {
         public const float ClearDuration = .48f;
+        public const float MissDuration = .44f;
+        public static readonly Color MissColor = new Color32(255, 99, 91, 255);
         public bool IsClearing { get; private set; }
         public bool IsRevealing => revealAge < .4f;
         Image face, shadow, cover;
-        Text number;
+        TMP_Text number;
         CanvasGroup group;
         RectTransform faceRect, effectsParent, burst;
         RectTransform[] sparkRects;
@@ -18,6 +21,8 @@ namespace TheTen
         Vector2 faceOrigin, shadowOrigin, burstOrigin;
         bool available, selected;
         float lift, revealAge = 1, clearAge;
+        float missStartedAt = float.NegativeInfinity;
+        Color baseColor;
         readonly Color ink = new Color32(26, 51, 54, 255);
         readonly Color blockedInk = new Color32(74, 99, 77, 255);
         public static Color TileColor(int value)
@@ -28,9 +33,10 @@ namespace TheTen
             return Color.white;
         }
 
-        public void Initialize(Image tileFace, Image tileShadow, Text tileNumber, RectTransform effects, bool initiallyAvailable)
+        public void Initialize(Image tileFace, Image tileShadow, TMP_Text tileNumber, RectTransform effects, bool initiallyAvailable)
         {
             face = tileFace; shadow = tileShadow; number = tileNumber; effectsParent = effects;
+            baseColor = face.color;
             faceRect = face.rectTransform;
             faceRect.pivot = new Vector2(.5f, .5f);
             faceOrigin = new Vector2(BoardModel.TileWidth / 2, -BoardModel.TileHeight / 2);
@@ -62,12 +68,20 @@ namespace TheTen
         public void ClearWithSparkles()
         {
             if (IsClearing) return;
+            missStartedAt = float.NegativeInfinity; face.color = baseColor;
             IsClearing = true; clearAge = 0;
             group.blocksRaycasts = false; group.interactable = false;
             face.raycastTarget = false; face.GetComponent<Button>().interactable = false;
             face.sprite = MintTheme.Sprite("TileSelected");
             cover.color = Color.clear;
             BuildBurst();
+        }
+
+        public void ShowMiss()
+        {
+            if (IsClearing) return;
+            missStartedAt = Time.unscaledTime;
+            face.color = MissColor;
         }
 
         void Update()
@@ -89,7 +103,11 @@ namespace TheTen
             float reveal = Mathf.SmoothStep(0, 1, (revealAge - .12f) / .28f);
             cover.color = new Color(1, 1, 1, available ? 1 - reveal : 0);
             number.color = available ? Color.Lerp(blockedInk, ink, reveal) : blockedInk;
-            faceRect.anchoredPosition = faceOrigin + new Vector2(0, Mathf.Round(lift) - (available ? 3 * (1 - reveal) : 0));
+            float miss = Mathf.Clamp01((Time.unscaledTime - missStartedAt) / MissDuration);
+            float tint = 1 - Mathf.SmoothStep(0, 1, (miss - .18f) / .82f);
+            float shake = miss < 1 ? Mathf.Sin(miss * Mathf.PI * 6) * 5 * (1 - miss) : 0;
+            face.color = Color.Lerp(baseColor, MissColor, tint);
+            faceRect.anchoredPosition = faceOrigin + new Vector2(Mathf.Round(shake), Mathf.Round(lift) - (available ? 3 * (1 - reveal) : 0));
             shadow.rectTransform.anchoredPosition = shadowOrigin + new Vector2(lift * .2f, -lift * .35f);
             shadow.color = new Color(13 / 255f, 39 / 255f, 25 / 255f, Mathf.Lerp(.39f, .24f, lift / 10));
         }
