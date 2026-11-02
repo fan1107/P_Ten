@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace TheTen
 {
-    public sealed partial class TheTenApp : MonoBehaviour
+    public sealed partial class TheTenApp : MonoBehaviour, IPointerClickHandler
     {
         public GameBalance Balance;
         [HideInInspector] public string SaveNamespace = "TheTen";
@@ -94,9 +94,11 @@ namespace TheTen
         }
         void BuildCanvas()
         {
-            var go = new GameObject("THE TEN • Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
+            var go = new GameObject("THE TEN • Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster), typeof(Image));
             go.transform.SetParent(transform);
             canvas = go.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            // Catch empty screen margins as well as the background inside the safe area.
+            go.GetComponent<Image>().color = Color.clear;
             root = Rect("Portrait safe area", go.transform, 0, 0, 720, 1280);
             root.anchorMin = root.anchorMax = new Vector2(.5f, .5f); root.pivot = new Vector2(.5f, .5f); root.anchoredPosition = Vector2.zero;
             Panel("Background", root, 0, 0, 720, 1280, new Color32(224, 234, 218, 255));
@@ -160,7 +162,14 @@ namespace TheTen
                 }
                 toastText.text = "";
             }
-            else if (result == SelectionResult.Miss) Toast("Not quite. Try another three.");
+            else if (result == SelectionResult.Miss) Toast("NOT TEN   -" + Balance.MissPenalty.ToString("0.#") + " SECONDS");
+            RefreshFaces(); UpdateHud();
+        }
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            // Tile/menu buttons handle their own clicks before events reach this ancestor.
+            if (eventData.button != PointerEventData.InputButton.Left || IsHome || operationBusy || overlay != null
+                || Run == null || !Run.CancelSelection()) return;
             RefreshFaces(); UpdateHud();
         }
         void RenderBoard()
@@ -340,8 +349,8 @@ namespace TheTen
         void ShowHelp()
         {
             if (Run != null && !IsHome) Run.Pause();
-            Modal("THREE MAKES TEN.", "Each match earns " + Balance.MatchScore + " points and " + Balance.MatchBonus + " seconds.\nMatch again within " + Balance.ComboWindow + "s: ×1.5 → ×2 → ×2.5 → ×3 → ×4 → ×5.");
-            Label("01   Clear the top tiles to reveal the layers.\n\n02   All 36 tiles belong to the layered board.\n        Only uncovered tiles can be selected.\n\n03   Tap a selected tile again to undo.\n\n04   No move? The board shuffles automatically.\n\n05   Chapter 3: 0 and −1. Chapter 5: ×2.\n        ×2 cannot be first, or used twice.\n\n06   0 / −1: SCORE ×2.  ×2 tile: SCORE ×4.\n        Multiplies combo points; highest bonus wins.\n        One revive per run. Your board stays.", overlay, 65, 510, 590, 480, 18, ink);
+            Modal("THREE MAKES TEN.", "Each match: +" + Balance.MatchScore + " points, +" + Balance.MatchBonus + " seconds.\nMiss: -" + Balance.MissPenalty + " seconds and selection cleared.\nCombo within " + Balance.ComboWindow + "s: ×1.5 → ×2 → ×2.5 → ×3 → ×4 → ×5.");
+            Label("01   Clear the top tiles to reveal the layers.\n\n02   All 36 tiles belong to the layered board.\n        Only uncovered tiles can be selected.\n\n03   Tap a selected tile again to undo.\n        Tap empty space to cancel all selections.\n        Cancelling has no time penalty.\n\n04   No move? The board shuffles automatically.\n\n05   Chapter 3: 0 and −1. Chapter 5: ×2.\n        ×2 cannot be first, or used twice.\n\n06   0 / −1: SCORE ×2.  ×2 tile: SCORE ×4.\n        Multiplies combo points; highest bonus wins.\n        One revive per run. Your board stays.", overlay, 65, 510, 590, 480, 18, ink);
             Button("GOT IT", overlay, 80, 1080, 560, 80, ink, ReturnFromMenu, paper);
         }
         void ReturnFromMenu()
@@ -354,13 +363,29 @@ namespace TheTen
         }
         void ShowRevive()
         {
-            Modal("ONE MORE LIFE?", "Keep your board. Start with 30 seconds.\nYour survival clock is paused.");
-            Label("SCORE   " + Run.Score.ToString("N0") + " PTS", overlay, 65, 495, 590, 55, 32, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            comboFeedback?.Hide(); ClearOverlay();
+            overlay = Rect("Revive modal", root, 0, 0, 720, 1280);
+            Panel("Modal background", overlay, 0, 0, 720, 1280, Color.white);
+            Panel("Modal card", overlay, 50, 185, 620, 940, ink);
+            Label("ONE MORE LIFE?", overlay, 65, 270, 590, 100, 48, paper, align: TextAnchor.MiddleCenter);
+            Label("KEEP YOUR BOARD. START WITH " + Balance.ReviveTime.ToString("0.#") + " SECONDS.",
+                overlay, 65, 420, 590, 50, 19, mint, align: TextAnchor.MiddleCenter);
+            Label("SCORE   " + Run.Score.ToString("N0") + " PTS", overlay, 65, 520, 590, 60, 34, paper, align: TextAnchor.MiddleCenter);
             bool canUse = Tickets.CurrentTicketCount > 0 && Tickets.SyncState == TicketSyncState.Ready;
-            Button(canUse ? "USE REVIVE TICKET  (" + Tickets.CurrentTicketCount + ")" : "WATCH REWARDED AD / MOCK", overlay, 80, 610, 560, 85, ink, () => { if (canUse) UseTicket(); else WatchAd(); }, paper);
-            Button("FINISH RUN", overlay, 80, 727, 560, 70, paper, () => { if (!operationBusy) { Run.End(); ShowGameOver(); } });
-            Button("REVIVE PASS / MOCK STORE", overlay, 80, 827, 560, 65, mint, ShowStore);
-            Label(Tickets.SyncState == TicketSyncState.Ready ? "Maximum one revive. Equal chances for everyone." : "Server time pending. No tickets issued.\nYou can still use a rewarded ad.", overlay, 65, 945, 590, 100, 21, muted, align: TextAnchor.MiddleCenter);
+            HomeButton(canUse ? "USE REVIVE TICKET  (" + Tickets.CurrentTicketCount + ")" : "WATCH REWARDED AD / MOCK",
+                canUse ? "USE TICKET" : "WATCH AD", canUse ? "ReviveTicket" : "ReviveAd", 94, 630, 148,
+                () => { if (canUse) UseTicket(); else WatchAd(); }, frame: "RevivePrimaryFrame");
+            HomeButton("FINISH RUN", "FINISH", "ReviveFinish", 286, 630, 148,
+                () => { if (!operationBusy && Run.State == RunState.ReviveChoice) { Run.End(); ShowGameOver(); } });
+            HomeButton("REVIVE PASS / MOCK STORE", "REVIVE PASS", "ReviveTicket", 478, 630, 148, ShowStore);
+            var noteColor = new Color32(120, 166, 107, 255);
+            string serviceNote = Balance.EnableMockCommerce ? "MOCK" : "UNAVAILABLE";
+            Label(canUse ? Tickets.CurrentTicketCount + " LEFT" + (Balance.EnableMockCommerce ? " / MOCK" : "") : serviceNote,
+                overlay, 79, 818, 178, 28, 15, noteColor, align: TextAnchor.MiddleCenter);
+            Label(serviceNote, overlay, 463, 818, 178, 28, 15, noteColor, align: TextAnchor.MiddleCenter);
+            Label(Tickets.SyncState == TicketSyncState.Ready ? "MAXIMUM ONE REVIVE.\nEQUAL CHANCES FOR EVERYONE."
+                : "SERVER TIME PENDING. NO TICKETS ISSUED.\nYOU CAN STILL USE A REWARDED AD.",
+                overlay, 65, 940, 590, 90, 19, mint, align: TextAnchor.MiddleCenter);
         }
         async void UseTicket()
         {

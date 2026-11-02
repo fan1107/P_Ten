@@ -103,12 +103,68 @@ namespace TheTen.Tests
             Assert.AreEqual(SelectionResult.Ten, run.Select(move[2]));
             Assert.AreEqual(33, run.Board.Remaining); Assert.AreEqual(33, run.RemainingTime); Assert.AreEqual(1, run.SuccessCount);
         }
-        [Test] public void FailedTripleHasNoPenaltyOrRemoval()
+        [Test] public void FailedTripleDeductsThreeSecondsOnceAndClearsSelection()
         {
             var run = new RunModel(balance, 1); var a = run.Board.Available().Take(3).ToArray();
             foreach (var t in a) t.Value = 1;
+            run.Select(a[0].Id); run.Select(a[1].Id);
+            Assert.AreEqual(30, run.RemainingTime); Assert.AreEqual(2, run.Selection.Count);
+            Assert.AreEqual(SelectionResult.Miss, run.Select(a[2].Id));
+            Assert.AreEqual(36, run.Board.Remaining); Assert.AreEqual(27, run.RemainingTime); Assert.IsEmpty(run.Selection);
+            Assert.AreEqual(0, run.Score); Assert.AreEqual(0, run.SuccessCount); Assert.AreEqual(0, run.TotalSurvivalTime);
+            Assert.IsFalse(run.CancelSelection()); Assert.AreEqual(27, run.RemainingTime);
             foreach (var t in a) run.Select(t.Id);
-            Assert.AreEqual(36, run.Board.Remaining); Assert.AreEqual(30, run.RemainingTime); Assert.IsEmpty(run.Selection);
+            Assert.AreEqual(24, run.RemainingTime); Assert.IsEmpty(run.Selection);
+        }
+        [TestCase(2, false)] [TestCase(3, false)] [TestCase(3.5, false)]
+        [TestCase(2, true)] [TestCase(3, true)] [TestCase(3.5, true)]
+        public void FailurePenaltyHandlesLifeBoundaryWithoutAddingSurvivalTime(double remaining, bool revived)
+        {
+            balance.InitialTime = balance.ReviveTime = 1;
+            var run = new RunModel(balance, 1);
+            if (revived) { run.Tick(1); Assert.IsTrue(run.Revive()); }
+            Match(run, run.Board.GuaranteedPath[0]);
+            run.Tick(run.RemainingTime - remaining);
+            double first = run.FirstSurvivalTime, second = run.SecondSurvivalTime, combo = run.ComboRemaining;
+            Assert.Greater(combo, 0);
+            var miss = run.Board.Available().Take(3).ToArray();
+            foreach (var tile in miss) tile.Value = 1;
+            Match(run, miss.Select(t => t.Id).ToArray());
+            Assert.AreEqual(Math.Max(0, remaining - 3), run.RemainingTime);
+            Assert.AreEqual(first, run.FirstSurvivalTime); Assert.AreEqual(second, run.SecondSurvivalTime);
+            Assert.AreEqual(10, run.Score); Assert.AreEqual(1, run.SuccessCount); Assert.AreEqual(33, run.Board.Remaining);
+            Assert.IsEmpty(run.Selection);
+            Assert.AreEqual(remaining > 3 ? RunState.Playing : revived ? RunState.GameOver : RunState.ReviveChoice, run.State);
+            Assert.AreEqual(remaining > 3 ? combo : 0, run.ComboRemaining);
+            if (remaining <= 3)
+            {
+                Assert.AreEqual(SelectionResult.Ignored, run.Select(miss[0].Id));
+                Assert.AreEqual(0, run.RemainingTime);
+            }
+        }
+        [TestCase(1)] [TestCase(2)]
+        public void CancelAllSelectionsPreservesTimeScoreComboAndBoard(int count)
+        {
+            var run = new RunModel(balance, 1);
+            var path = run.Board.GuaranteedPath;
+            Match(run, path[0]); run.Tick(.5);
+            foreach (int id in path[1].Take(count)) run.Select(id);
+            double time = run.RemainingTime, combo = run.ComboRemaining, survival = run.TotalSurvivalTime;
+            Assert.IsTrue(run.CancelSelection()); Assert.IsEmpty(run.Selection);
+            Assert.AreEqual(time, run.RemainingTime); Assert.AreEqual(combo, run.ComboRemaining);
+            Assert.AreEqual(survival, run.TotalSurvivalTime); Assert.AreEqual(10, run.Score);
+            Assert.AreEqual(33, run.Board.Remaining); Assert.AreEqual(RunState.Playing, run.State);
+            Assert.IsFalse(run.CancelSelection());
+        }
+        [Test] public void RetappingOnlyCancelsThatTileUnlessItWouldLeaveAnOperatorFirst()
+        {
+            var run = new RunModel(balance, 1); var move = run.Board.GuaranteedPath[0];
+            run.Select(move[0]); run.Select(move[1]);
+            Assert.AreEqual(SelectionResult.Deselected, run.Select(move[0]));
+            CollectionAssert.AreEqual(new[] { move[1] }, run.Selection);
+            run.CancelSelection(); run.Board.Tiles[move[1]].Value = BoardModel.Double;
+            run.Select(move[0]); run.Select(move[1]); run.Select(move[0]);
+            Assert.IsEmpty(run.Selection); Assert.AreEqual(30, run.RemainingTime);
         }
         [Test] public void CoveredTileAndFirstOperatorAreIgnored()
         {
@@ -116,6 +172,7 @@ namespace TheTen.Tests
             Assert.AreEqual(SelectionResult.Ignored, run.Select(0));
             var a = run.Board.Available().First(); a.Value = BoardModel.Double;
             Assert.AreEqual(SelectionResult.Ignored, run.Select(a.Id));
+            Assert.AreEqual(30, run.RemainingTime); Assert.IsEmpty(run.Selection);
         }
         [Test] public void BoardClearAndChapterPreserveLifeTimeAndCounters()
         {
@@ -230,7 +287,8 @@ namespace TheTen.Tests
             var run = new RunModel(balance, 1); var move = run.Board.GuaranteedPath[0];
             run.Board.Tiles[move[0]].Value = 0; run.Board.Tiles[move[1]].Value = 1; run.Board.Tiles[move[2]].Value = 100;
             Match(run, move);
-            Assert.AreEqual(0, run.Score); Assert.AreEqual(36, run.Board.Remaining); Assert.AreEqual(30, run.RemainingTime);
+            Assert.AreEqual(0, run.Score); Assert.AreEqual(36, run.Board.Remaining); Assert.AreEqual(27, run.RemainingTime);
+            Assert.IsEmpty(run.Selection);
         }
         static void Match(RunModel run, int[] move)
         {
@@ -284,8 +342,10 @@ namespace TheTen.Tests
             var run = new RunModel(balance, 9); Match(run, run.Board.GuaranteedPath[0]); run.Tick(1);
             var tiles = run.Board.Available().Take(3).ToArray();
             foreach (var tile in tiles) tile.Value = 1;
+            double time = run.RemainingTime, survival = run.TotalSurvivalTime;
             Match(run, tiles.Select(t => t.Id).ToArray());
             Assert.AreEqual(10, run.Score); Assert.AreEqual(2, run.ComboRemaining);
+            Assert.AreEqual(time - 3, run.RemainingTime); Assert.AreEqual(survival, run.TotalSurvivalTime);
         }
         [Test] public void RankingPersistsPointsAndIgnoresLegacySeconds()
         {

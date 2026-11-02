@@ -44,6 +44,91 @@ namespace TheTen.Tests
             var b = app.GetComponentsInChildren<Button>().First(t => t.transform.parent.name.StartsWith("Tile " + id + " •"));
             b.onClick.Invoke();
         }
+        GameObject ClickScreen(Vector2 screen, int pointerId = -1, PointerEventData.InputButton button = PointerEventData.InputButton.Left)
+        {
+            Canvas.ForceUpdateCanvases();
+            var pointer = new PointerEventData(EventSystem.current) { position = screen, pointerId = pointerId, button = button };
+            var hits = new List<RaycastResult>(); EventSystem.current.RaycastAll(pointer, hits);
+            Assert.IsNotEmpty(hits);
+            var hit = hits[0].gameObject; pointer.pointerCurrentRaycast = hits[0];
+            var handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hit);
+            Assert.IsNotNull(handler);
+            var pressed = ExecuteEvents.ExecuteHierarchy(hit, pointer, ExecuteEvents.pointerDownHandler) ?? handler;
+            ExecuteEvents.Execute(pressed, pointer, ExecuteEvents.pointerUpHandler);
+            ExecuteEvents.Execute(handler, pointer, ExecuteEvents.pointerClickHandler);
+            return hit;
+        }
+        void ClickGraphic(Graphic graphic)
+        {
+            Canvas.ForceUpdateCanvases();
+            var rect = graphic.rectTransform;
+            Assert.AreSame(graphic.gameObject, ClickScreen(RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center))));
+        }
+        void ClickTile(int id)
+        {
+            var face = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
+            ClickGraphic(face.GetComponent<Image>());
+        }
+        Vector2 BoardScreenPoint(float x, float y)
+        {
+            var board = app.GetComponentsInChildren<RectTransform>().Single(r => r.name == "Layered tiles");
+            return RectTransformUtility.WorldToScreenPoint(null, board.TransformPoint(new Vector3(x, -y, 0)));
+        }
+        [UnityTest] public IEnumerator FailedMatchUpdatesTimerAndClearsVisualSelection()
+        {
+            Begin();
+            var move = app.Run.Board.Available().Take(3).Select(t => t.Id).ToArray();
+            foreach (int id in move) app.Run.Board.Tiles[id].Value = 1;
+            app.SendMessage("RenderBoard"); yield return null;
+            app.SendMessage("OnApplicationFocus", true);
+            ClickTile(move[0]); ClickTile(move[1]);
+            Assert.AreEqual(2, app.Run.Selection.Count);
+            double time = app.Run.RemainingTime, survival = app.Run.TotalSurvivalTime;
+            ClickTile(move[2]);
+            Assert.AreEqual(time - 3, app.Run.RemainingTime); Assert.AreEqual(survival, app.Run.TotalSurvivalTime);
+            Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(36, app.Run.Board.Remaining); Assert.AreEqual(0, app.Run.Score);
+            foreach (int id in move)
+            {
+                var face = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
+                Assert.IsFalse(face.GetComponent<Image>().sprite.name.StartsWith("TileSelected"));
+                Assert.IsTrue(face.GetComponentsInChildren<Text>().Where(t => t.fontSize == 11).All(t => t.text == ""));
+            }
+            var labels = app.GetComponentsInChildren<Text>().Select(t => t.text).ToArray();
+            Assert.Contains(app.Run.RemainingTime.ToString("0.0"), labels);
+            Assert.Contains("NOT TEN   -3 SECONDS", labels);
+            Assert.Contains("·   +   ·   +   ·   =   10", labels);
+            LogAssert.NoUnexpectedReceived();
+        }
+        [UnityTest] public IEnumerator EmptySpaceCancelsAllWhileRetapsAndMenuButtonsKeepTheirActions()
+        {
+            Begin(); yield return null;
+            app.SendMessage("OnApplicationFocus", true);
+            var move = app.Run.Board.FindMove();
+            ClickTile(move[0]); ClickTile(move[1]);
+            double time = app.Run.RemainingTime;
+            ClickTile(move[0]); CollectionAssert.AreEqual(new[] { move[1] }, app.Run.Selection);
+            ClickTile(move[0]); Assert.AreEqual(2, app.Run.Selection.Count);
+            Assert.AreEqual("Background", ClickScreen(BoardScreenPoint(35, 500)).name);
+            Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
+            Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "·   +   ·   +   ·   =   10"));
+            ClickTile(move[0]); ClickTile(move[1]);
+            ClickScreen(BoardScreenPoint(710, 1100), pointerId: 42);
+            Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
+            ClickTile(move[0]);
+            ClickScreen(BoardScreenPoint(35, 500), button: PointerEventData.InputButton.Right);
+            CollectionAssert.AreEqual(new[] { move[0] }, app.Run.Selection);
+            ClickGraphic(Button("HOW TO PLAY").GetComponent<Image>());
+            Assert.AreEqual(RunState.Paused, app.Run.State); Assert.AreEqual(1, app.Run.Selection.Count);
+            yield return null; // Newly created menu graphics join the canvas before the next click.
+            ClickScreen(BoardScreenPoint(10, 700));
+            Assert.AreEqual(1, app.Run.Selection.Count);
+            ClickGraphic(Button("GOT IT").GetComponent<Image>());
+            Assert.AreEqual(RunState.Playing, app.Run.State); Assert.AreEqual(1, app.Run.Selection.Count);
+            ClickScreen(BoardScreenPoint(35, 500));
+            Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
+            Assert.AreEqual(36, app.Run.Board.Remaining); Assert.AreEqual(0, app.Run.Score);
+            LogAssert.NoUnexpectedReceived();
+        }
         [UnityTest] public IEnumerator BlockedSixTilesRearrangeAndContinueWithoutGameOver()
         {
             Begin();
@@ -267,11 +352,50 @@ namespace TheTen.Tests
             Assert.AreEqual(ComboFeedback.TierColor(1), bar.color);
             LogAssert.NoUnexpectedReceived();
         }
+        [UnityTest] public IEnumerator ReviveIconRowPreservesRunAcrossStoreAndFinishesThroughFlag()
+        {
+            Begin();
+            foreach (int id in app.Run.Board.FindMove()) Tap(id);
+            app.Run.Tick(1000); yield return null;
+            yield return null; // Update creates the modal; its graphics enter the raycast list on the next frame.
+            var run = app.Run; var board = run.Board; int score = run.Score;
+            var watch = Button("WATCH REWARDED AD / MOCK");
+            var finish = Button("FINISH RUN");
+            var pass = Button("REVIVE PASS / MOCK STORE");
+            var modal = finish.transform.parent;
+            Assert.AreEqual(3, modal.GetComponentsInChildren<Button>().Length);
+            var rects = new[] { watch, finish, pass }.Select(b => (RectTransform)b.transform).ToArray();
+            foreach (var rect in rects)
+            {
+                Assert.AreEqual(rect.rect.width, rect.rect.height);
+                Assert.GreaterOrEqual(rect.rect.width, 120);
+                Assert.AreEqual(rects[0].anchoredPosition.y, rect.anchoredPosition.y);
+            }
+            Assert.Less(rects[0].anchoredPosition.x + rects[0].rect.width, rects[1].anchoredPosition.x);
+            Assert.Less(rects[1].anchoredPosition.x + rects[1].rect.width, rects[2].anchoredPosition.x);
+            foreach (string sprite in new[] { "ReviveAd", "ReviveFinish", "ReviveTicket", "RevivePrimaryFrame" })
+                Assert.IsNotNull(MintTheme.Sprite(sprite), sprite);
+            var labels = modal.GetComponentsInChildren<Text>().Select(t => t.text).ToArray();
+            Assert.Contains("WATCH AD", labels); Assert.Contains("FINISH", labels); Assert.Contains("REVIVE PASS", labels);
+            Assert.IsFalse(labels.Any(t => t.ToLowerInvariant().Contains("survival clock is paused")));
+            Assert.AreEqual(2, labels.Count(t => t == "MOCK"));
+            ClickGraphic(pass.GetComponent<Image>()); yield return null;
+            Assert.IsNotNull(Button("RESTORE PURCHASE"));
+            ClickGraphic(Button("BACK").GetComponent<Image>()); yield return null;
+            Assert.AreSame(run, app.Run); Assert.AreSame(board, app.Run.Board);
+            Assert.AreEqual(score, app.Run.Score); Assert.AreEqual(RunState.ReviveChoice, app.Run.State);
+            Assert.IsFalse(app.Run.ReviveUsed);
+            ClickGraphic(Button("FINISH RUN").GetComponent<Image>());
+            Assert.AreEqual(RunState.GameOver, app.Run.State); Assert.AreEqual(score, app.Run.Score);
+            Assert.IsNotNull(Button("PLAY AGAIN"));
+            LogAssert.NoUnexpectedReceived();
+        }
         [UnityTest] public IEnumerator RewardedAdRevivesOnceAndSecondDeathEndsRun()
         {
             Begin(); app.Run.Tick(1000); yield return null;
+            yield return null;
             Assert.AreEqual(RunState.ReviveChoice, app.Run.State);
-            Button("WATCH REWARDED AD / MOCK").onClick.Invoke();
+            ClickGraphic(Button("WATCH REWARDED AD / MOCK").GetComponent<Image>());
             Assert.AreEqual(RunState.AdPlaying, app.Run.State);
             yield return new WaitForSecondsRealtime(.15f);
             Assert.IsTrue(app.Run.ReviveUsed); Assert.AreEqual(RunState.Playing, app.Run.State);
@@ -300,7 +424,12 @@ namespace TheTen.Tests
         {
             var purchase = app.Tickets.PurchaseAsync(); yield return new WaitUntil(() => purchase.IsCompleted);
             Assert.IsTrue(purchase.Result); Begin(); app.Run.Tick(1000); yield return null;
-            Button("USE REVIVE TICKET  (2)").onClick.Invoke();
+            yield return null;
+            var ticket = Button("USE REVIVE TICKET  (2)");
+            Assert.IsTrue(ticket.transform.parent.GetComponentsInChildren<Text>().Any(t => t.text == "USE TICKET"));
+            Assert.IsTrue(ticket.transform.parent.GetComponentsInChildren<Text>().Any(t => t.text == "2 LEFT / MOCK"));
+            Assert.IsTrue(ticket.GetComponentsInChildren<Image>().Any(i => i.sprite != null && i.sprite.name.StartsWith("ReviveTicket")));
+            ClickGraphic(ticket.GetComponent<Image>());
             yield return null;
             Assert.IsTrue(app.Run.ReviveUsed); Assert.AreEqual(RunState.Playing, app.Run.State);
             Assert.AreEqual(1, app.Tickets.CurrentTicketCount);

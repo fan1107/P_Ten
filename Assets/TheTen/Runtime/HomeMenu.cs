@@ -47,12 +47,12 @@ namespace TheTen
             var icon = Panel(name, parent, x, y, size, size, Color.white);
             MintTheme.Apply(icon, sprite, false); icon.raycastTarget = false;
         }
-        void HomeButton(string name, string caption, string sprite, float x, float y, float size, Action action, bool play = false)
+        void HomeButton(string name, string caption, string sprite, float x, float y, float size, Action action, bool play = false, string frame = null)
         {
             var shadow = Panel(name + " shadow", overlay, x + 4, y + 6, size, size, new Color32(0, 26, 23, 180));
             shadow.raycastTarget = false;
             var face = Panel(name, overlay, x, y, size, size, Color.white);
-            MintTheme.Apply(face, play ? "HomePlayFrame" : "HomeIconFrame");
+            MintTheme.Apply(face, frame ?? (play ? "HomePlayFrame" : "HomeIconFrame"));
             var button = face.gameObject.AddComponent<Button>(); button.onClick.AddListener(() => action());
             var colors = button.colors; colors.highlightedColor = new Color(1, 1, .85f); colors.pressedColor = new Color(.72f, .86f, .68f); button.colors = colors;
             HomeIcon(name + " icon", face.transform, sprite, size * .2f, size * .2f, size * .6f);

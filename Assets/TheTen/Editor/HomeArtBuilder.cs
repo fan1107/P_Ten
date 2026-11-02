@@ -37,13 +37,14 @@ namespace TheTen.Editor
             importer.spriteBorder = Vector4.one * border; importer.SaveAndReimport();
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
-        static Sprite Frame(string name, bool green)
+        static Sprite Frame(string name, bool green, bool goldBorder = false)
         {
             var texture = new Texture2D(24, 24, TextureFormat.RGBA32, false);
             for (int y = 0; y < 24; y++) for (int x = 0; x < 24; x++)
             {
                 int edge = Mathf.Min(x, y, 23 - x, 23 - y);
-                Color color = edge < 2 ? Palette['d'] : edge < 3 ? Palette['s'] : edge < 4 ? Palette['c']
+                Color color = edge < 2 ? Palette['d'] : edge < 3 ? Palette[goldBorder ? 'o' : 's']
+                    : edge < 4 ? Palette[goldBorder ? 'g' : 'c'] : goldBorder && edge < 5 ? Palette['c']
                     : green ? new Color32(62, 103, 43, 255) : new Color32(15, 54, 46, 255);
                 texture.SetPixel(x, y, color);
             }
@@ -59,10 +60,34 @@ namespace TheTen.Editor
             sprites.Add(Icon("HomeGear", "......cccc......", "......cccc......", "..cc..cccc..cc..", "..cccccccccccc..", "...cccccccccc...", "...cccddddccc...", "ccccccddddcccccc", "ccccddddddddcccc", "ccccddddddddcccc", "ccccccddddcccccc", "...cccddddccc...", "...cccccccccc...", "..cccccccccccc..", "..cc..cccc..cc..", "......cccc......", "......cccc......"));
             sprites.Add(Icon("HomeChart", "................", ".......ccc......", ".......ccc......", ".......ccc......", ".......ccc......", ".......ccc.ccc..", ".......ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "..ccc..ccc.ccc..", "................"));
             sprites.Add(Frame("HomeIconFrame", false)); sprites.Add(Frame("HomePlayFrame", true));
+            sprites.AddRange(ReviveSprites());
             var background = (TextureImporter)AssetImporter.GetAtPath(Root + "HomeRuins.png");
             background.textureType = TextureImporterType.Sprite; background.spriteImportMode = SpriteImportMode.Single;
             background.filterMode = FilterMode.Point; background.mipmapEnabled = false; background.textureCompression = TextureImporterCompression.Uncompressed;
             background.npotScale = TextureImporterNPOTScale.None; background.maxTextureSize = 2048; background.SaveAndReimport();
+            AddToAtlas(sprites);
+            AssetDatabase.SaveAssets();
+        }
+        static List<Sprite> ReviveSprites()
+        {
+            return new List<Sprite>
+            {
+                Icon("ReviveAd", "................", "................", "..gggggggggggg..", "..occcccccccco..", "..odccccccccdo..", "..odccdcccccdo..", "..occcddccccco..", "..odccdddcccdo..", "..odccddddccdo..", "..occcdddcccco..", "..odccddccccdo..", "..odccdcccccdo..", "..occcccccccco..", "..oooooooooooo..", "................", "................"),
+                Icon("ReviveFinish", "................", "................", "...cs...........", "...csccddc......", "...csccddccddc..", "...csddccdcddc..", "...csddccddccd..", "...csccddcdccd..", "...csccddccddc..", "...csddccdcddc..", "...csddccddccd..", "...cs.....dccd..", "...cs...........", "...cs...........", "...cs...........", "................"),
+                Icon("ReviveTicket", "................", "................", "................", "..gggggggggggg..", "..gccccccccccg..", "..gcgddggddgcg..", "..gcgddddddgcg..", "....gddddddg....", "....ggddddgg....", "..gcgggddgggcg..", "..gcggggggggcg..", "..gggggggggggg..", "..oooooooooooo..", "................", "................", "................"),
+                Frame("RevivePrimaryFrame", true, true)
+            };
+        }
+        [MenuItem("THE TEN/Build revive icons")]
+        public static void BuildRevive()
+        {
+            AddToAtlas(ReviveSprites());
+            AssetDatabase.SaveAssets();
+            var atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(Root + "MintCream.spriteatlas");
+            if (atlas != null) UnityEditor.U2D.SpriteAtlasUtility.PackAtlases(new[] { atlas }, EditorUserBuildSettings.activeBuildTarget);
+        }
+        static void AddToAtlas(List<Sprite> sprites)
+        {
             var atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(Root + "MintCream.spriteatlas");
             if (atlas != null)
             {
@@ -70,7 +95,6 @@ namespace TheTen.Editor
                 UnityEditor.U2D.SpriteAtlasExtensions.Add(atlas, sprites.Where(s => !existing.Contains(s)).Cast<Object>().ToArray());
                 EditorUtility.SetDirty(atlas);
             }
-            AssetDatabase.SaveAssets();
         }
     }
 }

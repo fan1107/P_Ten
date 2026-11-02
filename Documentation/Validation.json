@@ -2,18 +2,20 @@
   "unityVersion": "6000.3.23f1",
   "scene": "Assets/Scenes/TheTen.unity",
   "editMode": {
-    "jobId": "9e53b4ec343c48648cc995433d6349be",
-    "passed": 67,
+    "jobId": "9ba57fda99264bdcbeee782c7a514d53",
+    "passed": 76,
     "failed": 0,
     "skipped": 0
   },
   "playMode": {
-    "jobId": "c3a1cf50a6b54c6d9872ca0678b806ce",
-    "passed": 13,
+    "jobId": "c9cf0e02a8d9441fb6d2cdf870733f1c",
+    "passed": 16,
     "failed": 0,
     "skipped": 0
   },
   "finalConsoleErrorCount": 0,
+  "reviveIconUiCheck": "2026-11-02: 16 PlayMode tests passed. Revive screen removes the survival-clock-paused sentence and reuses lobby-style square buttons for WATCH AD, FINISH, and REVIVE PASS. Pointer raycasts verify rewarded-ad and ticket revival, finish, and store return with board/score/state preserved. Ticket ownership changes the first icon and caption to USE TICKET with remaining count. Native screenshot Captures/revive-icons.png visually verified the one-row layout, labels, primary-button emphasis, and existing pixel-art background. Final console errors: 0.",
+  "failurePenaltyAndCancelCheck": "2026-11-02: 76 EditMode and 15 PlayMode tests passed. Failed triples deduct 3 seconds once and clear selection without removing tiles, subtracting score, advancing combo time, or adding survival time. Time clamps to zero and enters ReviveChoice or GameOver as appropriate. Pointer raycasts verify empty-space mouse/touch-event cancellation, tile retap cancellation, refreshed timer/equation/selection UI, and isolation from menu buttons and overlays. Physical touch-device validation was not performed.",
   "guaranteedDoubleCheck": "250 boards across chapters 5/6/10/20/100 with zero random x2 weight contain exactly one x2 and retain a complete legal solution.",
   "specialTileCheck": "50 EditMode tests passed: chapters 1-2 have only 1-9; chapters 3-4 allow 0/-1; chapter 5 onwards allows x2. Unlock boundaries and complete solutions verified.",
   "chapterClearCheck": "2026-11-01: EditMode 39 passed for full board clear. PlayMode 10 passed including centered chapter header, popup waiting with frozen time/combo, double confirmation advancing exactly once, and score preservation. Popup card contrast subsequently verified visually.",

@@ -10,6 +10,7 @@ namespace TheTen
         [Min(1)] public int MatchScore = 10;
         [Min(.1f)] public float ComboWindow = 3;
         [Min(0)] public float MatchBonus = 3;
+        [Min(0)] public float MissPenalty = 3;
         [Min(0)] public float ShuffleBonus = 8;
         [Min(1)] public float ReviveTime = 30;
         [Tooltip("Provisional; <= 0 means unlimited.")] public float MaxRemainingTime = 90;

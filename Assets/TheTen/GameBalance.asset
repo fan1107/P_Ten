@@ -16,6 +16,7 @@ MonoBehaviour:
   MatchScore: 10
   ComboWindow: 3
   MatchBonus: 3
+  MissPenalty: 3
   ShuffleBonus: 8
   ReviveTime: 30
   MaxRemainingTime: 90

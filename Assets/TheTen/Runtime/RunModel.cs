@@ -45,8 +45,16 @@ namespace TheTen
             ComboRemaining = Math.Max(0, ComboRemaining - actual);
             if (ComboRemaining <= 0) comboIndex = -1;
             if (ReviveUsed) SecondSurvivalTime += actual; else FirstSurvivalTime += actual;
-            if (RemainingTime <= 0)
-            { Selection.Clear(); ResetCombo(); State = ReviveUsed ? RunState.GameOver : RunState.ReviveChoice; }
+            if (RemainingTime <= 0) ExpireLife();
+        }
+        void ExpireLife()
+        {
+            Selection.Clear(); ResetCombo(); State = ReviveUsed ? RunState.GameOver : RunState.ReviveChoice;
+        }
+        public bool CancelSelection()
+        {
+            if (State != RunState.Playing || Selection.Count == 0) return false;
+            Selection.Clear(); return true;
         }
         public SelectionResult Select(int id)
         {
@@ -73,6 +81,12 @@ namespace TheTen
                 Score += LastMatchScore;
                 ComboRemaining = balance.ComboWindow;
                 RemainingTime = Limit(RemainingTime + balance.MatchBonus);
+            }
+            else
+            {
+                // A penalty is not elapsed play time and does not advance the combo clock.
+                RemainingTime = Math.Max(0, RemainingTime - Math.Max(0, balance.MissPenalty));
+                if (RemainingTime <= 0) ExpireLife();
             }
             Selection.Clear();
             if (ten)
