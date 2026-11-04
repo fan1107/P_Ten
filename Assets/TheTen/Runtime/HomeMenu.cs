@@ -7,27 +7,66 @@ namespace TheTen
     public sealed partial class TheTenApp
     {
         bool homeMotion = true;
+        int[] homePreviewValues;
+
+        void EnsureHomePreview()
+        {
+            if (homePreviewValues != null) return;
+            var combinations = new System.Collections.Generic.List<int[]>();
+            for (int a = 1; a <= 8; a++)
+                for (int b = a; b <= 8; b++)
+                {
+                    int c = 10 - a - b;
+                    if (c >= b && c <= 9) combinations.Add(new[] { a, b, c });
+                }
+            string key = SaveNamespace + ".HomePreviewCombination";
+            int previous = PlayerPrefs.GetInt(key, -1);
+            var random = new System.Random(Guid.NewGuid().GetHashCode());
+            int index = previous >= 0 && previous < combinations.Count
+                ? (previous + 1 + random.Next(combinations.Count - 1)) % combinations.Count
+                : random.Next(combinations.Count);
+            homePreviewValues = (int[])combinations[index].Clone();
+            for (int i = 2; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                int temp = homePreviewValues[i]; homePreviewValues[i] = homePreviewValues[j]; homePreviewValues[j] = temp;
+            }
+            PlayerPrefs.SetInt(key, index); PlayerPrefs.Save();
+        }
+
+        void BuildHomePreviewTiles()
+        {
+            EnsureHomePreview();
+            for (int i = 0; i < 3; i++)
+            {
+                int value = homePreviewValues[i];
+                var tile = Panel("Home preview tile " + i, overlay, 140 + i * 150, 576, 140, 140, Color.white);
+                tile.sprite = JewelTheme.Tile(value); tile.raycastTarget = false;
+                var number = Label(value.ToString(), tile.transform, 8, 31, 124, 76, 66, ink, align: TextAnchor.MiddleCenter);
+                number.color = ink; UiTypography.ApplyOutline(number);
+            }
+        }
 
         void BuildRuinsHome()
         {
             IsHome = true; comboFeedback?.Hide(); ClearOverlay();
             overlay = Rect("Home menu", root, 0, 0, 720, 1280);
             var backdrop = Panel("Home ruins", overlay, 0, 0, 720, 1280, Color.white);
-            // Keep HomeRuins.png as the original; the monument is a separate background asset.
             MintTheme.Apply(backdrop, "HomeRuinsMonument", false);
-            Label("NUMBER PUZZLE  /  SURVIVAL", overlay, 95, 402, 530, 33, 22, paper, align: TextAnchor.MiddleCenter);
-            var intro = Rect("Home introduction", overlay, 90, 439, 540, 44).gameObject.AddComponent<LetterWave>();
+            var hero = Panel("Ten hero", overlay, 35, 40, 650, 740, Color.white);
+            hero.sprite = Resources.Load<Sprite>("Atlas/CasualMatte/HomeHero"); hero.preserveAspect = true; hero.raycastTarget = false;
+            BuildHomePreviewTiles();
+            var intro = Rect("Home introduction", overlay, 90, 795, 540, 44).gameObject.AddComponent<LetterWave>();
             intro.Initialize(font, 36); intro.enabled = homeMotion;
-            Label("LOCAL BEST", overlay, 235, 864, 250, 34, 24, paper, align: TextAnchor.MiddleCenter);
-            Label(ranking.BestScore.ToString("N0") + " PTS", overlay, 175, 902, 370, 46, 36, paper, align: TextAnchor.MiddleCenter);
-            HomeIcon("Best trophy", overlay, "HomeTrophy", 206, 867, 25);
-
-            HomeButton("LET'S PLAY  →", "PLAY", "HomePlay", 79, 1014, 112, StartRun, true);
-            HomeButton("Rank button", "RANKING", "HomeTrophy", 229, 1014, 112, () => ShowRanking(0));
-            HomeButton("REVIVE PASS / MOCK STORE", "STORE", "HomeStore", 379, 1014, 112, ShowStore);
-            HomeButton("HOW TO PLAY", "HOW TO", "HomeBook", 529, 1014, 112, ShowHelp);
-            HomeButton("Home settings", "", "HomeGear", 640, 26, 54, ShowHomeSettings);
-            HomeButton("Home records", "", "HomeChart", 640, 100, 54, ShowHomeRecord);
+            Button("Home records", overlay, 170, 865, 380, 82, ink, ShowHomeRecord);
+            overlay.Find("Home records").GetComponentInChildren<TMPro.TMP_Text>().text = "LOCAL BEST  " + ranking.BestScore.ToString("N0") + " PTS";
+            Button("LET'S PLAY  →", overlay, 105, 976, 510, 100, mint, StartRun, paper);
+            overlay.Find("LET'S PLAY  →").GetComponentInChildren<TMPro.TMP_Text>().text = "PLAY";
+            overlay.Find("LET'S PLAY  →").GetComponentInChildren<TMPro.TMP_Text>().fontSize = 42;
+            HomeButton("Rank button", "RANKING", "HomeTrophy", 139, 1112, 102, () => ShowRanking(0));
+            HomeButton("REVIVE PASS / MOCK STORE", "STORE", "HomeStore", 309, 1112, 102, ShowStore);
+            HomeButton("HOW TO PLAY", "HOW TO", "HomeBook", 479, 1112, 102, ShowHelp);
+            HomeButton("Home settings", "", "HomeGear", 630, 28, 60, ShowHomeSettings);
         }
 
         void HomeIcon(string name, Transform parent, string sprite, float x, float y, float size)
@@ -37,7 +76,7 @@ namespace TheTen
         }
         void HomeButton(string name, string caption, string sprite, float x, float y, float size, Action action, bool play = false, string frame = null)
         {
-            var shadow = Panel(name + " shadow", overlay, x + 4, y + 6, size, size, new Color32(0, 26, 23, 180));
+            var shadow = Panel(name + " shadow", overlay, x + 4, y + 6, size, size, new Color32(24, 13, 42, 100));
             shadow.raycastTarget = false;
             var face = Panel(name, overlay, x, y, size, size, Color.white);
             MintTheme.Apply(face, frame ?? (play ? "HomePlayFrame" : "HomeIconFrame"));

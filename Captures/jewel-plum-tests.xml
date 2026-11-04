@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.6291813">
+  <test-suite type="TestSuite" id="1028" name="THE TEN!" fullname="THE TEN!" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.629181" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1022" name="TheTen.PlayTests.dll" fullname="C:/Users/fan/Documents/P_Ten/P-Ten/Library/ScriptAssemblies/TheTen.PlayTests.dll" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.623447" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44296" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1023" name="TheTen" fullname="TheTen" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.621971" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1024" name="Tests" fullname="TheTen.Tests" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.620710" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="PrototypeFlowTests" fullname="TheTen.Tests.PrototypeFlowTests" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:24Z" duration="3.612875" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1016" name="JewelTypographyRendersLatinSymbolsAndKoreanFallback" fullname="TheTen.Tests.PrototypeFlowTests.JewelTypographyRendersLatinSymbolsAndKoreanFallback" methodname="JewelTypographyRendersLatinSymbolsAndKoreanFallback" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" seed="1726357779" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:21Z" duration="0.236072" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1012" name="MatchSparklesRevealExistingTilesAndAllowImmediateNextSelection" fullname="TheTen.Tests.PrototypeFlowTests.MatchSparklesRevealExistingTilesAndAllowImmediateNextSelection" methodname="MatchSparklesRevealExistingTilesAndAllowImmediateNextSelection" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" seed="983864979" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:21Z" duration="0.660331" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="MintAtlasAndSpatialRaycastsMatchVisibleUpperTile" fullname="TheTen.Tests.PrototypeFlowTests.MintAtlasAndSpatialRaycastsMatchVisibleUpperTile" methodname="MintAtlasAndSpatialRaycastsMatchVisibleUpperTile" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" seed="703645380" result="Passed" start-time="2026-11-03 13:36:21Z" end-time="2026-11-03 13:36:22Z" duration="0.057590" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="SelectionLiftsAndReturnsWithoutMovingBoardGeometry" fullname="TheTen.Tests.PrototypeFlowTests.SelectionLiftsAndReturnsWithoutMovingBoardGeometry" methodname="SelectionLiftsAndReturnsWithoutMovingBoardGeometry" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" seed="784470508" result="Passed" start-time="2026-11-03 13:36:22Z" end-time="2026-11-03 13:36:22Z" duration="0.394742" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="SpecialTilesHaveColorsBonusAndNonBlockingFireworks" fullname="TheTen.Tests.PrototypeFlowTests.SpecialTilesHaveColorsBonusAndNonBlockingFireworks" methodname="SpecialTilesHaveColorsBonusAndNonBlockingFireworks" classname="TheTen.Tests.PrototypeFlowTests" runstate="Runnable" seed="743715893" result="Passed" start-time="2026-11-03 13:36:22Z" end-time="2026-11-03 13:36:24Z" duration="2.252626" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/fan/AppData/LocalLow/DefaultCompany/THE TEN!\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -5,7 +5,7 @@ namespace TheTen
 {
     public sealed class LetterWave : MonoBehaviour
     {
-        public const string Message = "3 Touch, Make 10!";
+        public const string Message = "3 TAPS. MAKE 10.";
         RectTransform[] letters;
         float age;
         public void Initialize(TMP_FontAsset font, int size = 28)
@@ -27,7 +27,7 @@ namespace TheTen
                 rect.anchoredPosition = new Vector2(x + widths[i] / 2, 0);
                 var text = go.GetComponent<TextMeshProUGUI>(); text.text = Message[i].ToString();
                 UiTypography.Configure(text, size, i == 0 ? new Color32(246, 209, 95, 255)
-                    : i == 14 || i == 15 ? new Color32(241, 116, 104, 255) : new Color32(245, 242, 228, 255));
+                    : i == 13 || i == 14 ? new Color32(241, 116, 104, 255) : new Color32(245, 242, 228, 255));
                 letters[i] = rect; x += widths[i];
             }
         }

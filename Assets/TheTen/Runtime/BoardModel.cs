@@ -104,19 +104,14 @@ namespace TheTen
         // Values are sampled with chapter weights, conditioned on a valid triple.
         public void Reconstruct(int chapter, GameBalance balance, Random random)
         {
-            var pending = new HashSet<int>(Tiles.Where(t => !t.Removed).Select(t => t.Id));
-            GuaranteedPath = new List<int[]>();
-            while (pending.Count > 0)
+            // Search the existing geometry before assigning values. A greedy triple can
+            // strand a later layer even when another removal order clears this layout.
+            if (!BoardSolver.TrySolve(this, balance.SolverNodeBudget, out var path, true))
+                throw new InvalidOperationException("No complete removal path found in the remaining geometry.");
+            GuaranteedPath = path;
+            foreach (var move in path)
             {
-                var available = Tiles.Where(t => pending.Contains(t.Id) && !Tiles.Any(u => pending.Contains(u.Id) && Covers(u, t)))
-                    .OrderByDescending(t => t.Layer).ThenBy(t => random.Next()).Take(3).ToArray();
-                if (available.Length < 3)
-                {
-                    // Spatially locked leftovers cannot form any legal triple. Recovery removes
-                    // no tiles and keeps geometry: caller ends the run with an explicit error.
-                    throw new InvalidOperationException("Remaining geometry has fewer than three exposed tiles.");
-                }
-                var triple = available;
+                var triple = move.Select(id => Tiles[id]).ToArray();
                 int a = 2, b = 3, c = 5;
                 for (int attempt = 0; attempt < 1000; attempt++)
                 {
@@ -125,8 +120,7 @@ namespace TheTen
                     a = x; b = y; c = z; break;
                 }
                 triple[0].Value = a; triple[1].Value = b; triple[2].Value = c;
-                GuaranteedPath.Add(triple.Select(t => t.Id).ToArray());
-                foreach (var t in triple) pending.Remove(t.Id);
+
             }
         }
 
@@ -176,6 +170,18 @@ namespace TheTen
                 // Rebuild compact terraces of complete triples. Each upper terrace
                 // can be removed before the next, even if only one tile was exposed.
                 for (int i = 0; i < remaining.Count; i++) remaining[i].Value = original[i];
+                var exposed = Available();
+                if (exposed.Count >= 3)
+                {
+                    // A full solution can be impossible (or exceed the search budget)
+                    // while a next move is still possible. Preserve every slot here;
+                    // rearrangement is allowed only when fewer than three are exposed.
+                    var next = exposed.OrderByDescending(t => t.Layer).Take(3).ToArray();
+                    next[0].Value = 2; next[1].Value = 3; next[2].Value = 5;
+                    GuaranteedPath = null; // Only the next move is guaranteed in this case.
+                    reconstructed = true;
+                    return true;
+                }
                 Height = Math.Max(1, (remaining.Count + 5) / 6);
                 for (int i = 0; i < remaining.Count; i++)
                 {
@@ -211,9 +217,9 @@ namespace TheTen
             return mask == 0;
         }
 
-        public static bool TrySolve(BoardModel board, int budget, out List<int[]> path)
+        public static bool TrySolve(BoardModel board, int budget, out List<int[]> path, bool geometryOnly = false)
         {
-            if (board.GuaranteedPath != null && ValidatePath(board, board.GuaranteedPath))
+            if (!geometryOnly && board.GuaranteedPath != null && ValidatePath(board, board.GuaranteedPath))
             { path = new List<int[]>(board.GuaranteedPath); return true; }
             var output = new List<int[]>();
             var seen = new HashSet<ulong>();
@@ -224,13 +230,14 @@ namespace TheTen
             {
                 if (state == 0) return true;
                 if (--budget < 0 || !seen.Add(state)) return false;
-                var a = board.Tiles.Where(t => (state & (1UL << t.Id)) != 0 && (state & blockers[t.Id]) == 0).ToArray();
+                var a = board.Tiles.Where(t => (state & (1UL << t.Id)) != 0 && (state & blockers[t.Id]) == 0)
+                    .OrderByDescending(t => t.Layer).ToArray();
                 for (int i = 0; i < a.Length - 2; i++)
                     for (int j = i + 1; j < a.Length - 1; j++)
                         for (int k = j + 1; k < a.Length; k++)
                         {
                             if (budget < 0) return false;
-                            var move = TenRules.OrderedTen(a[i], a[j], a[k]);
+                            var move = geometryOnly ? new[] { a[i].Id, a[j].Id, a[k].Id } : TenRules.OrderedTen(a[i], a[j], a[k]);
                             if (move == null) continue;
                             ulong next = state;
                             foreach (int id in move) next &= ~(1UL << id);

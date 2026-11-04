@@ -9,7 +9,7 @@ namespace TheTen
     {
         static TMP_FontAsset font;
         static Material outline, tileOutline;
-        public static TMP_FontAsset Font => font != null ? font : font = Load<TMP_FontAsset>("Fonts/NotoSans-Bold SDF");
+        public static TMP_FontAsset Font => font != null ? font : font = JewelTheme.Font ?? Load<TMP_FontAsset>("Fonts/NotoSans-Bold SDF");
 
         static T Load<T>(string path) where T : UnityEngine.Object
         {
@@ -22,7 +22,7 @@ namespace TheTen
         {
             text.font = Font;
             text.fontSize = size;
-            text.fontStyle = FontStyles.Normal; // The source face is already Bold.
+            text.fontStyle = FontStyles.Bold;
             text.color = color;
             text.alignment = Alignment(alignment);
             text.textWrappingMode = wrap ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
@@ -35,6 +35,11 @@ namespace TheTen
 
         public static void ApplyOutline(TMP_Text text)
         {
+            if (JewelTheme.Font != null && text.font == JewelTheme.Font)
+            {
+                text.fontSharedMaterial = text.font.material;
+                return;
+            }
             if (outline == null) outline = Load<Material>("Fonts/NotoSans-Outline");
             if (tileOutline == null) tileOutline = Load<Material>("Fonts/NotoSans-TileOutline");
             var color = text.color;

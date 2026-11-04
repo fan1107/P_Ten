@@ -1,1 +1,1 @@
-{"name":"TheTen.Editor","references":["TheTen.Runtime","Unity.TextMeshPro"],"includePlatforms":["Editor"]}
+{"name":"TheTen.Editor","references":["TheTen.Runtime","Unity.TextMeshPro","UnityEditor.TestRunner"],"includePlatforms":["Editor"]}

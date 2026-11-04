@@ -225,6 +225,27 @@ namespace TheTen.Tests
             Assert.IsTrue(repaired); Assert.IsTrue(BoardSolver.ValidatePath(b, b.GuaranteedPath));
             CollectionAssert.AreEqual(geometry, b.Tiles.Select(t => (t.Id, t.X, t.Y, t.Layer)).ToArray());
         }
+        [Test] public void ShuffleKeepsPositionsUntilFewerThanThreeTilesAreExposed()
+        {
+            var b = BoardModel.Create(1, balance, new Random(3));
+            foreach (var t in b.Tiles)
+            {
+                t.Removed = t.Id >= 6; t.Value = 9;
+                t.X = t.Id < 2 ? 40 + t.Id * 150 : 400;
+                t.Y = 600; t.Layer = t.Id < 2 ? 0 : t.Id;
+            }
+            Assert.AreEqual(3, b.Available().Count);
+            var geometry = b.Tiles.Select(t => (t.Id, t.X, t.Y, t.Layer, t.Removed)).ToArray();
+            Assert.IsTrue(b.Shuffle(1, balance, new Random(4), out _));
+            CollectionAssert.AreEqual(geometry, b.Tiles.Select(t => (t.Id, t.X, t.Y, t.Layer, t.Removed)).ToArray());
+            var move = b.FindMove(); Assert.IsNotNull(move);
+            foreach (int id in move) b.Tiles[id].Removed = true;
+            Assert.AreEqual(1, b.Available().Count);
+            Assert.IsTrue(b.Shuffle(1, balance, new Random(5), out _));
+            Assert.AreEqual(3, b.Remaining);
+            Assert.IsTrue(BoardSolver.ValidatePath(b, b.GuaranteedPath));
+        }
+
         [Test] public void ImpossibleGeometryRearrangesAndPreservesRemainingTiles()
         {
             var b = BoardModel.Create(1, balance, new Random(1));

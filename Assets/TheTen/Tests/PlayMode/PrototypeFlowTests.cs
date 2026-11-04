@@ -130,7 +130,7 @@ namespace TheTen.Tests
                 Assert.AreEqual(origins[i], failedFaces[i].rectTransform.anchoredPosition);
                 Assert.AreEqual(modelPositions[i], new Vector2(app.Run.Board.Tiles[move[i]].X, app.Run.Board.Tiles[move[i]].Y));
             }
-            Assert.AreEqual(timerColor, timer.color); Assert.AreEqual(Vector3.one, timer.rectTransform.localScale);
+            Assert.AreEqual((Color32)timerColor, (Color32)timer.color); Assert.AreEqual(Vector3.one, timer.rectTransform.localScale);
             Assert.AreEqual(36, app.Run.Board.Remaining); Assert.AreEqual(0, app.Run.Score);
             LogAssert.NoUnexpectedReceived();
         }
@@ -177,7 +177,7 @@ namespace TheTen.Tests
             Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
             Assert.AreEqual("0", app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").text);
             ClickTile(move[0]); ClickTile(move[1]);
-            ClickScreen(BoardScreenPoint(710, 1100), pointerId: 42);
+            ClickScreen(BoardScreenPoint(680, 1100), pointerId: 42);
             Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(time, app.Run.RemainingTime);
             ClickTile(move[0]);
             ClickScreen(BoardScreenPoint(35, 500), button: PointerEventData.InputButton.Right);
@@ -185,7 +185,7 @@ namespace TheTen.Tests
             ClickGraphic(Button("HOW TO PLAY").GetComponent<Image>());
             Assert.AreEqual(RunState.Paused, app.Run.State); Assert.AreEqual(1, app.Run.Selection.Count);
             yield return null; // Newly created menu graphics join the canvas before the next click.
-            ClickScreen(BoardScreenPoint(10, 700));
+            ClickScreen(BoardScreenPoint(35, 700));
             Assert.AreEqual(1, app.Run.Selection.Count);
             ClickGraphic(Button("GOT IT").GetComponent<Image>());
             Assert.AreEqual(RunState.Playing, app.Run.State); Assert.AreEqual(1, app.Run.Selection.Count);
@@ -215,6 +215,11 @@ namespace TheTen.Tests
             Assert.AreEqual(score, app.Run.Score); Assert.AreEqual(removed, app.Run.TotalRemovedTiles);
             Assert.AreEqual(1, app.Run.Chapter); Assert.IsFalse(app.Run.ReviveUsed);
             Assert.AreEqual(6, app.GetComponentsInChildren<TileVisual>().Length);
+            var notice = app.GetComponentsInChildren<RectTransform>().Single(t => t.name == "Shuffle notice");
+            Assert.AreEqual("더 진행할 수 없어 셔플!", notice.GetComponentInChildren<Text>().text);
+            Assert.IsFalse(notice.GetComponent<CanvasGroup>().blocksRaycasts);
+            yield return new WaitForSecondsRealtime(1.7f);
+            Assert.IsFalse(app.GetComponentsInChildren<RectTransform>().Any(t => t.name == "Shuffle notice"));
             foreach (var move in app.Run.Board.GuaranteedPath.ToList()) foreach (int id in move) Tap(id);
             Assert.AreEqual(RunState.BoardTransition, app.Run.State);
             Assert.AreEqual(0, app.Run.Board.Remaining);
@@ -232,7 +237,8 @@ namespace TheTen.Tests
             foreach (int id in new[] {move[0], move[2], negative.Id})
             {
                 var face = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
-                Assert.AreEqual(TileVisual.TileColor(app.Run.Board.Tiles[id].Value), face.GetComponent<Image>().color);
+                Assert.AreEqual(Color.white, face.GetComponent<Image>().color);
+                Assert.AreSame(JewelTheme.Tile(app.Run.Board.Tiles[id].Value), face.GetComponent<Image>().sprite);
             }
             foreach (int id in move) Tap(id);
             Assert.AreEqual(40, app.Run.Score);
@@ -247,8 +253,17 @@ namespace TheTen.Tests
         [UnityTest] public IEnumerator RuinsHomeButtonsOpenMenusAndReturn()
         {
             Assert.IsTrue(app.IsHome);
-            foreach (string sprite in new[] { "HomeRuins", "HomeRuinsMonument", "HomePlay", "HomeTrophy", "HomeStore", "HomeBook", "HomeGear", "HomeChart" })
+            foreach (string sprite in new[] { "HomeRuinsMonument", "HomePlay", "HomeTrophy", "HomeStore", "HomeBook", "HomeGear", "HomeChart" })
                 Assert.IsNotNull(MintTheme.Sprite(sprite), sprite);
+            var preview = app.GetComponentsInChildren<Image>().Where(i => i.name.StartsWith("Home preview tile ")).OrderBy(i => i.name).ToArray();
+            Assert.AreEqual(3, preview.Length);
+            var previewValues = preview.Select(i => int.Parse(i.GetComponentInChildren<Text>().text)).ToArray();
+            Assert.AreEqual(10, previewValues.Sum());
+            for (int i = 0; i < preview.Length; i++)
+            {
+                Assert.AreSame(JewelTheme.Tile(previewValues[i]), preview[i].sprite);
+                Assert.IsFalse(preview[i].raycastTarget);
+            }
             var backdrop = app.GetComponentsInChildren<Image>().Single(i => i.name == "Home ruins");
             Assert.AreSame(MintTheme.Sprite("HomeRuinsMonument"), backdrop.sprite);
             Assert.IsFalse(backdrop.transform.parent.GetComponentsInChildren<Image>().Any(i => i.name == "Home tile"));
@@ -259,8 +274,8 @@ namespace TheTen.Tests
             Assert.AreEqual(LetterWave.Message, string.Concat(letters.Select(t => t.text)));
             Assert.IsTrue(letters.All(t => t.fontSize == 36 && !t.raycastTarget));
             Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)letters[0].color);
-            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[14].color);
-            Assert.AreEqual(letters[14].color, letters[15].color);
+            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[13].color);
+            Assert.AreEqual(letters[13].color, letters[14].color);
             var initialScales = letters.Select(t => t.transform.localScale.x).ToArray();
             yield return new WaitForSecondsRealtime(.14f);
             Assert.IsTrue(letters.Select((t, i) => Mathf.Abs(t.transform.localScale.x - initialScales[i])).Any(delta => delta > .02f));
@@ -280,6 +295,9 @@ namespace TheTen.Tests
             Button("Home settings").onClick.Invoke(); Button("MENU MOTION: OFF").onClick.Invoke(); Button("BACK").onClick.Invoke();
             intro = app.GetComponentsInChildren<LetterWave>().Single(w => w.name == "Home introduction");
             Assert.IsTrue(intro.enabled);
+            CollectionAssert.AreEqual(previewValues, app.GetComponentsInChildren<Image>()
+                .Where(i => i.name.StartsWith("Home preview tile ")).OrderBy(i => i.name)
+                .Select(i => int.Parse(i.GetComponentInChildren<Text>().text)).ToArray());
             Button("Home records").onClick.Invoke();
             Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "YOUR RECORD"));
             Button("BACK").onClick.Invoke();
@@ -317,12 +335,12 @@ namespace TheTen.Tests
             Assert.AreEqual("0", score.text); Assert.AreEqual(TextAlignmentOptions.Center, score.alignment);
             Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)score.color);
             Assert.GreaterOrEqual(score.fontSize, 48);
-            Assert.AreEqual(360, score.rectTransform.anchoredPosition.x + score.rectTransform.rect.width * (.5f - score.rectTransform.pivot.x));
+            Assert.AreEqual(520, score.rectTransform.anchoredPosition.x + score.rectTransform.rect.width * (.5f - score.rectTransform.pivot.x));
             Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text.StartsWith("SCORE")
                 || t.text.Contains("MATCH TO START") || t.text.Contains("=   10") || t.text.Contains("→   10")));
             Assert.AreEqual(22, timer.rectTransform.rect.height);
             Assert.AreEqual(14, combo.rectTransform.rect.height);
-            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)combo.color);
+            Assert.AreEqual((Color32)ComboFeedback.TierColor(app.Run.ComboMultiplier), (Color32)combo.color);
             Assert.AreEqual(624, timer.rectTransform.rect.width);
             var levels = new[] { 24.7, 20, 10, 5.2 };
             var colors = new[] { new Color32(119, 198, 104, 255), new Color32(244, 200, 79, 255),
@@ -342,7 +360,7 @@ namespace TheTen.Tests
             }
             Assert.AreEqual(colors[0], (Color32)timer.color);
             Assert.AreEqual(app.Run.Score.ToString("N0"), score.text);
-            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)combo.color);
+            Assert.AreEqual((Color32)ComboFeedback.TierColor(app.Run.ComboMultiplier), (Color32)combo.color);
             app.Run.Tick(1000); app.SendMessage("UpdateHud");
             Assert.AreEqual(0, timer.rectTransform.rect.width); Assert.AreEqual(colors[3], (Color32)timer.color);
             Assert.IsTrue(app.Run.Revive()); app.SendMessage("UpdateHud");
@@ -382,6 +400,32 @@ namespace TheTen.Tests
             Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "CHAPTER 02"));
             Assert.IsFalse(app.GetComponentsInChildren<Button>().Any(b => b.name == "CONFIRM"));
             Assert.IsEmpty(app.GetComponentsInChildren<ChapterFireworks>());
+            LogAssert.NoUnexpectedReceived();
+        }
+        [UnityTest] public IEnumerator PressShrinksReleasePopsAndExitCancelsWithoutSelecting()
+        {
+            Begin(); int id = app.Run.Board.FindMove()[0];
+            var button = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
+            var rect = (RectTransform)button.transform;
+            var pointer = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left, pointerId = 12 };
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.Less(rect.localScale.x, .94f); Assert.IsEmpty(app.Run.Selection);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            Assert.Contains(id, app.Run.Selection);
+            float peak = 0, deadline = Time.realtimeSinceStartup + .4f;
+            while (Time.realtimeSinceStartup < deadline) { peak = Mathf.Max(peak, rect.localScale.x); yield return null; }
+            Assert.Greater(peak, 1.23f); Assert.AreEqual(1.12f, rect.localScale.x, .01f);
+            Tap(id); yield return new WaitForSecondsRealtime(.35f);
+            Assert.AreEqual(1, rect.localScale.x, .01f);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+            yield return new WaitForSecondsRealtime(.1f);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerExitHandler);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(1, rect.localScale.x, .01f);
+            Assert.AreEqual(0, app.Run.Score);
             LogAssert.NoUnexpectedReceived();
         }
         [UnityTest] public IEnumerator SelectionLiftsAndReturnsWithoutMovingBoardGeometry()
@@ -432,9 +476,10 @@ namespace TheTen.Tests
         {
             Begin(); yield return null;
             Canvas.ForceUpdateCanvases();
-            Assert.IsNotNull(Resources.Load<Font>("Atlas/MintPixel"));
-            Assert.IsNotNull(Resources.Load<UnityEngine.U2D.SpriteAtlas>("Atlas/MintCream"));
-            Assert.IsNotNull(MintTheme.Sprite("TileSelected"));
+            Assert.IsNotNull(JewelTheme.Font);
+            Assert.IsNotNull(Resources.Load<UnityEngine.U2D.SpriteAtlas>("Atlas/CasualMatte/CasualMatte"));
+            foreach (int value in new[] { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, BoardModel.Double })
+                Assert.IsNotNull(JewelTheme.Tile(value));
             Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text == "FREE TILES" || t.text == "ALWAYS AVAILABLE"));
             Assert.IsFalse(app.GetComponentsInChildren<Image>().Any(i => i.name == "Free tray"));
             var well = app.GetComponentsInChildren<Image>().First(i => i.name == "Board well");
@@ -496,7 +541,7 @@ namespace TheTen.Tests
             Assert.AreEqual(1, app.GetComponentsInChildren<ComboFeedback>().Length);
             Assert.IsFalse(feedback.GetComponent<CanvasGroup>().blocksRaycasts);
             Assert.IsTrue(feedback.GetComponentsInChildren<Graphic>().All(g => !g.raycastTarget));
-            Assert.AreEqual(new Color32(178, 121, 237, 255), (Color32)bar.color);
+            Assert.AreEqual((Color32)ComboFeedback.TierColor(app.Run.ComboMultiplier), (Color32)bar.color);
             app.Run.Pause(); yield return new WaitForSecondsRealtime(ScalePulse.Duration + .1f);
             Assert.AreEqual(Vector3.one, badge.localScale); Assert.AreEqual(Vector3.one, score.rectTransform.localScale);
             Assert.AreEqual("×5!!", caption.text); Assert.AreEqual(1, feedback.GetComponent<CanvasGroup>().alpha);
@@ -516,8 +561,8 @@ namespace TheTen.Tests
             var letters = intro.GetComponentsInChildren<Text>();
             Assert.AreEqual(LetterWave.Message, string.Concat(letters.Select(t => t.text)));
             Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)letters[0].color);
-            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[14].color);
-            Assert.AreEqual(letters[14].color, letters[15].color);
+            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[13].color);
+            Assert.AreEqual(letters[13].color, letters[14].color);
             Assert.IsTrue(letters.All(t => !t.raycastTarget));
             var initial = letters.Select(t => t.transform.localScale.x).ToArray();
             yield return new WaitForSecondsRealtime(.14f);
@@ -525,7 +570,7 @@ namespace TheTen.Tests
             Assert.IsTrue(letters.All(t => t.transform.localScale.x >= 1 && t.transform.localScale.x <= 1.221f));
             Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.text.Contains("REMOVED")));
             var best = app.GetComponentsInChildren<Text>().Single(t => t.name == "Best score");
-            Assert.AreEqual(42, best.fontSize);
+            Assert.AreEqual(32, best.fontSize);
             Assert.AreEqual(TextAlignmentOptions.Center, best.alignment);
             var move = app.Run.Board.FindMove();
             ClickTile(move[0]); ClickTile(move[1]);
@@ -541,7 +586,7 @@ namespace TheTen.Tests
             Assert.IsEmpty(app.Run.Selection);
             LogAssert.NoUnexpectedReceived();
         }
-        [UnityTest] public IEnumerator NotoOutlinesRenderLatinSymbolsAndKoreanWithoutChangingPixelArt()
+        [UnityTest] public IEnumerator JewelTypographyRendersLatinSymbolsAndKoreanFallback()
         {
             var font = Resources.Load<TMP_FontAsset>("Fonts/NotoSans-Bold SDF");
             var outline = Resources.Load<Material>("Fonts/NotoSans-Outline");
@@ -555,10 +600,10 @@ namespace TheTen.Tests
             Assert.IsTrue(outline.IsKeywordEnabled("OUTLINE_ON"));
             Assert.IsTrue(font.HasCharacters("0123456789×−→", out uint[] missing, true));
             Assert.IsEmpty(app.GetComponentsInChildren<UnityEngine.UI.Text>(true));
-            Assert.IsTrue(app.GetComponentsInChildren<Text>().All(t => t.font == font && !t.raycastTarget));
+            Assert.IsTrue(app.GetComponentsInChildren<Text>().All(t => t.font == JewelTheme.Font && !t.raycastTarget));
             var background = app.GetComponentsInChildren<Image>().Single(i => i.name == "Home ruins");
-            Assert.AreEqual("HomeRuinsMonument", background.sprite.texture.name);
-            Assert.AreEqual(FilterMode.Point, background.sprite.texture.filterMode);
+            Assert.AreEqual("Background", background.sprite.texture.name);
+            Assert.AreEqual(FilterMode.Bilinear, background.sprite.texture.filterMode);
             Assert.AreEqual(FilterMode.Bilinear, font.atlasTexture.filterMode);
             Button("Rank button").onClick.Invoke();
             yield return null;
@@ -571,8 +616,8 @@ namespace TheTen.Tests
             Button("BACK").onClick.Invoke();
             Begin(); yield return null;
             var number = app.GetComponentInChildren<TileVisual>().GetComponentInChildren<Text>();
-            Assert.AreSame(tileOutline, number.fontSharedMaterial);
-            Assert.AreSame(outline, app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").fontSharedMaterial);
+            Assert.AreSame(JewelTheme.Font.material, number.fontSharedMaterial);
+            Assert.AreSame(JewelTheme.Font.material, app.GetComponentsInChildren<Text>().Single(t => t.name == "Run score").fontSharedMaterial);
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -621,7 +666,8 @@ namespace TheTen.Tests
             Assert.AreEqual(RunState.ReviveChoice, app.Run.State);
             ClickGraphic(Button("WATCH REWARDED AD / MOCK").GetComponent<Image>());
             Assert.AreEqual(RunState.AdPlaying, app.Run.State);
-            yield return new WaitForSecondsRealtime(.15f);
+            float deadline = Time.realtimeSinceStartup + 3;
+            while (!app.Run.ReviveUsed && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(app.Run.ReviveUsed); Assert.AreEqual(RunState.Playing, app.Run.State);
             app.Run.Tick(1000); yield return null;
             Assert.AreEqual(RunState.GameOver, app.Run.State);

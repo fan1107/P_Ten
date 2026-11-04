@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace TheTen
 {
-    // Screen-space pixel fireworks; purely visual and never intercept input.
+    // Screen-space matte confetti; purely visual and never intercept input.
     public sealed class ChapterFireworks : MonoBehaviour
     {
         const float Lifetime = 1.6f;
@@ -68,6 +68,7 @@ namespace TheTen
                 rect.sizeDelta = Vector2.one * (i % 4 == 0 ? 12 : 6);
                 rect.anchoredPosition = origins[i];
                 pixels[i] = go.GetComponent<Image>(); pixels[i].raycastTarget = false;
+                pixels[i].sprite = JewelTheme.Get("Round");
                 pixels[i].color = colors[(i + burst) % colors.Length];
                 pixels[i].enabled = false;
             }
@@ -82,7 +83,7 @@ namespace TheTen
                 pixels[i].enabled = t >= 0 && t < Lifetime;
                 if (!pixels[i].enabled) continue;
                 var position = origins[i] + velocities[i] * (1 - Mathf.Exp(-2 * t)) + Vector2.down * (65 * t * t);
-                pixels[i].rectTransform.anchoredPosition = new Vector2(Mathf.Round(position.x / 3) * 3, Mathf.Round(position.y / 3) * 3);
+                pixels[i].rectTransform.anchoredPosition = position;
                 var color = pixels[i].color;
                 color.a = 1 - Mathf.SmoothStep(0, 1, (t - .5f) / (Lifetime - .5f));
                 pixels[i].color = color;
