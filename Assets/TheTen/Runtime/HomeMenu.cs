@@ -49,7 +49,7 @@ namespace TheTen
 
         void BuildRuinsHome()
         {
-            IsHome = true; comboFeedback?.Hide(); ClearOverlay();
+            IsHome = true; comboFeedback?.Hide(); tileComboParticles?.StopAll(); ClearOverlay();
             overlay = Rect("Home menu", root, 0, 0, 720, 1280);
             var backdrop = Panel("Home ruins", overlay, 0, 0, 720, 1280, Color.white);
             MintTheme.Apply(backdrop, "HomeRuinsMonument", false);

@@ -13,6 +13,7 @@ namespace TheTen
         ScalePulse pulse;
         double factor = 1;
         bool active;
+        readonly ComboParticleGraphic[] effects = new ComboParticleGraphic[5];
         public float Pulse => pulse != null ? pulse.Strength : 0;
 
         public static Color TierColor(double value)
@@ -41,6 +42,16 @@ namespace TheTen
             textRect.sizeDelta = new Vector2(rect.rect.width - 12, 42);
             multiplier = caption.GetComponent<TextMeshProUGUI>();
             UiTypography.Configure(multiplier, 34, new Color32(26, 51, 54, 255));
+            for (int i = 0; i < effects.Length; i++)
+            {
+                var prefab = Resources.Load<ComboParticleGraphic>("Effects/Combo/ComboStage" + (i + 1));
+                if (prefab == null) { Debug.LogError("Missing combo effect prefab stage " + (i + 1)); continue; }
+                effects[i] = Instantiate(prefab, transform);
+                var effectRect = (RectTransform)effects[i].transform;
+                effectRect.anchorMin = effectRect.anchorMax = effectRect.pivot = new Vector2(.5f, .5f);
+                effectRect.anchoredPosition = Vector2.zero;
+                effectRect.SetAsFirstSibling();
+            }
             SetState(1, false); Hide();
         }
         public void SetState(double value, bool hasCombo)
@@ -52,8 +63,19 @@ namespace TheTen
             multiplier.text = next >= 5 ? "×5!!" : "×" + next.ToString("0.#");
             face.color = TierColor(next); group.alpha = 1;
         }
+        public static int EffectStage(double multiplier)
+        {
+            return multiplier >= 5 ? 5 : multiplier >= 4 ? 4 : multiplier >= 2.5 ? 3 : multiplier >= 2 ? 2 : multiplier >= 1.5 ? 1 : 0;
+        }
+        public void PlayMatch(double multiplier)
+        {
+            int stage = EffectStage(multiplier);
+            foreach (var effect in effects) if (effect != null) effect.StopBurst();
+            if (stage > 0 && effects[stage - 1] != null) effects[stage - 1].PlayBurst();
+        }
         public void Hide()
         {
+            foreach (var effect in effects) if (effect != null) effect.StopBurst();
             if (group != null) group.alpha = 0;
             if (pulse != null) pulse.ResetScale();
         }

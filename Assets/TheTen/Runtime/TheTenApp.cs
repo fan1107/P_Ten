@@ -35,6 +35,7 @@ namespace TheTen
         TMP_Text timerText, chapterText, bestText, toastText, lifeText, scoreText;
         Image timeFill, comboFill;
         ComboFeedback comboFeedback;
+        TileComboParticles tileComboParticles;
         ScalePulse scorePulse;
         int displayedScore;
         MockServerClock mockClock;
@@ -145,6 +146,10 @@ namespace TheTen
             boardEffectsRoot = Rect("Tile effects", root, 0, 0, 720, 1280);
             boardRoot.localScale = boardEffectsRoot.localScale = Vector3.one * 1.08f;
             boardRoot.anchoredPosition = boardEffectsRoot.anchoredPosition = new Vector2(-28.8f, 100);
+            var tileComboRoot = Rect("Tile combo particles", root, 0, 0, 720, 1280);
+            tileComboRoot.localScale = boardEffectsRoot.localScale;
+            tileComboRoot.anchoredPosition = boardEffectsRoot.anchoredPosition;
+            tileComboParticles = tileComboRoot.gameObject.AddComponent<TileComboParticles>();
             bestText = Label("BEST 0 PTS", root, 42, 1050, 636, 55, 32, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
             bestText.name = "Best score";
             toastText = Label("", root, 35, 1110, 650, 28, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
@@ -173,6 +178,9 @@ namespace TheTen
             var result = Run.Select(id);
             if (result == SelectionResult.Ten)
             {
+                var centers = attempt.Select(tileId => (Vector2)tileComboParticles.transform.InverseTransformPoint(
+                    faces[tileId].rectTransform.TransformPoint(faces[tileId].rectTransform.rect.center))).ToArray();
+                tileComboParticles.Play(Run.ComboMultiplier, centers);
                 if (Run.State == RunState.BoardTransition) ChapterFireworks.Play(root, false);
                 if (Run.LastMatchBonusMultiplier > 1)
                 {
@@ -199,6 +207,7 @@ namespace TheTen
         }
         void RenderBoard()
         {
+            tileComboParticles.StopAll();
             foreach (Transform child in boardRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             foreach (Transform child in boardEffectsRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             faces.Clear(); numbers.Clear(); tileVisuals.Clear();
@@ -261,7 +270,7 @@ namespace TheTen
             float pulse = Run.ComboRemaining > 0 ? comboFeedback.Pulse : 0;
             comboFill.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 14 + 2 * pulse);
             scoreText.text = Run.Score.ToString("N0");
-            if (Run.Score > displayedScore) scorePulse.Play();
+            if (Run.Score > displayedScore) { scorePulse.Play(); comboFeedback.PlayMatch(Run.ComboMultiplier); }
             else if (Run.Score < displayedScore) scorePulse.ResetScale();
             displayedScore = Run.Score;
             bestText.text = "BEST " + Math.Max(Run.Score, ranking.BestScore).ToString("N0") + " PTS";

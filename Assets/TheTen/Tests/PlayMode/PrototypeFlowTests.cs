@@ -428,6 +428,59 @@ namespace TheTen.Tests
             Assert.AreEqual(0, app.Run.Score);
             LogAssert.NoUnexpectedReceived();
         }
+        [UnityTest] public IEnumerator ComboParticlePrefabsEscalateAndReuseInstancesWithoutBlockingInput()
+        {
+            Begin();
+            var feedback = app.GetComponentInChildren<ComboFeedback>();
+            var effects = feedback.GetComponentsInChildren<ComboParticleGraphic>();
+            Assert.AreEqual(5, effects.Length);
+            double[] factors = { 1.5, 2, 2.5, 4, 5 };
+            int previousCount = 0;
+            for (int i = 0; i < factors.Length; i++)
+            {
+                Assert.AreEqual(i + 1, ComboFeedback.EffectStage(factors[i]));
+                feedback.PlayMatch(factors[i]);
+                yield return new WaitForSecondsRealtime(.22f);
+                var active = effects.Single(e => e.Particles.particleCount > 0);
+                Assert.IsTrue(active.name.StartsWith("ComboStage" + (i + 1)));
+                Assert.Greater(active.Particles.particleCount, previousCount);
+                previousCount = active.Particles.particleCount;
+                Canvas.ForceUpdateCanvases();
+                Assert.Greater(active.canvasRenderer.GetMesh().vertexCount, 0);
+                Assert.IsFalse(active.raycastTarget);
+            }
+            Assert.AreEqual(3, ComboFeedback.EffectStage(3));
+            feedback.PlayMatch(5); yield return new WaitForSecondsRealtime(.12f);
+            Assert.AreEqual(5, feedback.GetComponentsInChildren<ComboParticleGraphic>().Length);
+            Assert.IsTrue(effects.Any(e => e.Particles.particleCount > 0));
+            feedback.Hide();
+            Assert.IsTrue(effects.All(e => e.Particles.particleCount == 0));
+            feedback.PlayMatch(1); yield return null;
+            Assert.IsTrue(effects.All(e => e.Particles.particleCount == 0));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest] public IEnumerator MatchedTilesEmitThreeComboBurstsAndReuseThem()
+        {
+            Begin();
+            var pool = app.GetComponentInChildren<TileComboParticles>();
+            var move = app.Run.Board.FindMove();
+            foreach (int id in move) Tap(id);
+            yield return new WaitForSecondsRealtime(.08f);
+            var effects = pool.GetComponentsInChildren<ComboParticleGraphic>();
+            Assert.AreEqual(3, effects.Length);
+            Assert.IsTrue(effects.All(e => e.Particles.particleCount > 0 && !e.raycastTarget));
+            Assert.AreEqual(3, effects.Select(e => ((RectTransform)e.transform).anchoredPosition).Distinct().Count());
+            foreach (int id in app.Run.Board.FindMove()) Tap(id);
+            yield return new WaitForSecondsRealtime(.08f);
+            CollectionAssert.AreEquivalent(effects, pool.GetComponentsInChildren<ComboParticleGraphic>());
+            Assert.IsTrue(app.GetComponentInChildren<ComboFeedback>().GetComponentsInChildren<ComboParticleGraphic>().Any(e => e.Particles.particleCount > 0));
+            app.StartRun(); yield return null;
+            Assert.IsTrue(effects.All(e => e.Particles.particleCount == 0));
+            Assert.AreEqual(36, app.Run.Board.Remaining);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest] public IEnumerator SelectionLiftsAndReturnsWithoutMovingBoardGeometry()
         {
             Begin(); int id = app.Run.Board.FindMove()[0];
