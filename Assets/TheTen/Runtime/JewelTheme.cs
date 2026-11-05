@@ -21,7 +21,8 @@ namespace TheTen
             }
             return sprites.TryGetValue(name, out var found) ? found : null;
         }
-        public static Sprite Tile(int value) => Get("Tile" + (value == BoardModel.Double ? "Double" : value == -1 ? "Minus" : value.ToString()));
+        // The final single 10 uses the gold 0 face; its number is rendered live.
+        public static Sprite Tile(int value) => Get("Tile" + (value == BoardModel.Double ? "Double" : value == -1 ? "Minus" : value == 10 ? "0" : value.ToString()));
         public static Sprite Replacement(string name)
         {
             if (name == "MintGarden" || name == "HomeRuinsMonument") return Resources.Load<Sprite>("Atlas/CasualMatte/Background");

@@ -8,7 +8,7 @@ Original generated art remains in the Codex generated_images folder; copies are 
 THE TEN/Build Casual Matte art rebuilds import settings, sprite slices, native panels, font and atlas. Number labels are live TMP text, not baked into gameplay sprites.
 
 ## Runtime
-JewelTheme remains a compatibility facade but now resolves CasualMatte resources. HomeMenu uses the new hero and real menu buttons. Gameplay moves time/score into one header, centers the combo badge, colors the bar by tier and enlarges/translates both tile and effect roots equally. Selected tiles lift with a cream outline; particles use smooth positions and rounded shapes.
+JewelTheme remains a compatibility facade but now resolves CasualMatte resources. HomeMenu uses the new hero and real menu buttons. Gameplay moves time/score into one header, centers the combo badge, colors the bar by tier and enlarges/translates both tile and effect roots equally. Selected tiles lift and display a gold border edged in dark plum; particles use smooth positions and rounded shapes.
 Gameplay models, 36-tile generation, scores, timers, chapter gates and commerce rules are unchanged. Legacy art remains available for rollback. APK was not rebuilt during this art change.
 
 ## Rollback

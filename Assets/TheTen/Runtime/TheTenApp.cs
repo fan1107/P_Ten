@@ -32,6 +32,7 @@ namespace TheTen
         TMP_FontAsset font;
         Canvas canvas;
         RectTransform root, boardRoot, boardEffectsRoot, overlay, shuffleNotice;
+        RectTransform survivalHud;
         TMP_Text timerText, chapterText, bestText, toastText, lifeText, scoreText;
         Image timeFill, comboFill;
         ComboFeedback comboFeedback;
@@ -71,6 +72,7 @@ namespace TheTen
             var safe = Screen.safeArea;
             canvas.scaleFactor = Mathf.Min(safe.width / 720f, safe.height / 1280f);
             root.anchoredPosition = (safe.center - new Vector2(Screen.width, Screen.height) / 2) / canvas.scaleFactor;
+            if (TouchGame != null && overlay == null) AnimateLowTaps();
             if (Run != null && !IsHome)
             {
                 if (!appSuspended) Run.Tick(Time.unscaledDeltaTime);
@@ -115,27 +117,28 @@ namespace TheTen
         }
         void BuildGame()
         {
-            chapterText = Label("CHAPTER 01", root, 110, 28, 500, 64, 38, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
-            Rect("Play introduction", root, 90, 1220, 540, 36).gameObject.AddComponent<LetterWave>().Initialize(font);
-            Button("Ⅱ", root, 614, 43, 64, 64, paper, () => { if (Run != null && Run.State == RunState.Playing) { Run.Pause(); ShowPause(); } });
-            Panel("Clock card", root, 40, 115, 640, 100, ink);
-            lifeText = Label("LIFE 1 / 2", root, 250, 88, 220, 24, 22, mint, align: TextAnchor.MiddleRight);
-            timerText = Label(Balance.InitialTime.ToString("0.0"), root, 60, 125, 280, 80, 64, paper, FontStyle.Bold);
+            survivalHud = Rect("Survival HUD", root, 0, 0, 720, 1280);
+            chapterText = Label("CHAPTER 01", survivalHud, 110, 28, 500, 64, 38, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Rect("Play introduction", survivalHud, 90, 1220, 540, 36).gameObject.AddComponent<LetterWave>().Initialize(font);
+            Button("Ⅱ", survivalHud, 614, 43, 64, 64, paper, () => { if (Run != null && Run.State == RunState.Playing) { Run.Pause(); ShowPause(); } });
+            Panel("Clock card", survivalHud, 40, 115, 640, 100, ink);
+            lifeText = Label("LIFE 1 / 2", survivalHud, 250, 88, 220, 24, 22, mint, align: TextAnchor.MiddleRight);
+            timerText = Label(Balance.InitialTime.ToString("0.0"), survivalHud, 60, 125, 280, 80, 64, paper, FontStyle.Bold);
             timerText.name = "Countdown";
             timerText.rectTransform.pivot = new Vector2(0, .5f);
             timerText.rectTransform.anchoredPosition += new Vector2(0, -40);
 
-            Panel("Time track", root, 40, 229, 640, 34, mint);
-            timeFill = Panel("Time remaining", root, 48, 235, 624, 22, timeGreen);
+            Panel("Time track", survivalHud, 40, 229, 640, 34, mint);
+            timeFill = Panel("Time remaining", survivalHud, 48, 235, 624, 22, timeGreen);
             const float comboCenterY = 302;
-            Panel("Combo track", root, 40, comboCenterY - 13, 640, 26, mint);
-            comboFill = Panel("Combo remaining", root, 48, comboCenterY - 7, 0, 14, comboPurple);
+            Panel("Combo track", survivalHud, 40, comboCenterY - 13, 640, 26, mint);
+            comboFill = Panel("Combo remaining", survivalHud, 48, comboCenterY - 7, 0, 14, comboPurple);
             // Keep the fill centered on the badge as its thickness pulses.
             comboFill.rectTransform.pivot = new Vector2(0, .5f);
             comboFill.rectTransform.anchoredPosition = new Vector2(48, -comboCenterY);
-            comboFeedback = Rect("Combo badge", root, 284, comboCenterY - 27, 152, 54).gameObject.AddComponent<ComboFeedback>();
+            comboFeedback = Rect("Combo badge", survivalHud, 284, comboCenterY - 27, 152, 54).gameObject.AddComponent<ComboFeedback>();
             comboFeedback.Initialize();
-            scoreText = Label("0", root, 380, 132, 280, 66, 54, new Color32(246, 209, 95, 255), align: TextAnchor.MiddleCenter);
+            scoreText = Label("0", survivalHud, 380, 132, 280, 66, 54, new Color32(246, 209, 95, 255), align: TextAnchor.MiddleCenter);
             scoreText.name = "Run score";
             scoreText.textWrappingMode = TextWrappingModes.NoWrap;
             scoreText.rectTransform.pivot = new Vector2(.5f, .5f);
@@ -150,16 +153,19 @@ namespace TheTen
             tileComboRoot.localScale = boardEffectsRoot.localScale;
             tileComboRoot.anchoredPosition = boardEffectsRoot.anchoredPosition;
             tileComboParticles = tileComboRoot.gameObject.AddComponent<TileComboParticles>();
-            bestText = Label("BEST 0 PTS", root, 42, 1050, 636, 55, 32, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            bestText = Label("BEST 0 PTS", survivalHud, 42, 1050, 636, 55, 32, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
             bestText.name = "Best score";
-            toastText = Label("", root, 35, 1110, 650, 28, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
-            Button("HOW TO PLAY", root, 42, 1165, 302, 59, paper, ShowHelp);
-            Button("LAB / MOCK", root, 362, 1165, 316, 59, paper, ShowLab);
-
+            toastText = Label("", survivalHud, 35, 1110, 650, 28, 18, ink, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Button("HOW TO PLAY", survivalHud, 42, 1165, 302, 59, paper, ShowHelp);
+            Button("LAB / MOCK", survivalHud, 362, 1165, 316, 59, paper, ShowLab);
+            survivalHud.SetAsLastSibling();
         }
         public void StartRun()
         {
             if (operationBusy || transitionBusy) return;
+            TouchGame = null;
+            if (touchHud != null) touchHud.gameObject.SetActive(false);
+            survivalHud.gameObject.SetActive(true);
             if (shuffleNotice != null) Destroy(shuffleNotice.gameObject);
             ClearOverlay(); IsHome = false; submitted = false;
             penaltyStartedAt = float.NegativeInfinity;
@@ -173,14 +179,13 @@ namespace TheTen
         public void SelectTile(int id)
         {
             if (IsHome || operationBusy || overlay != null) return;
+            if (TouchGame != null) { SelectTouchTile(id); return; }
             // The model clears a failed selection immediately; keep its IDs for visual feedback.
             int[] attempt = Run.Selection.Count == 2 ? new[] { Run.Selection[0], Run.Selection[1], id } : null;
             var result = Run.Select(id);
             if (result == SelectionResult.Ten)
             {
-                var centers = attempt.Select(tileId => (Vector2)tileComboParticles.transform.InverseTransformPoint(
-                    faces[tileId].rectTransform.TransformPoint(faces[tileId].rectTransform.rect.center))).ToArray();
-                tileComboParticles.Play(Run.ComboMultiplier, centers);
+                PlayTileBursts(attempt, Run.ComboMultiplier);
                 if (Run.State == RunState.BoardTransition) ChapterFireworks.Play(root, false);
                 if (Run.LastMatchBonusMultiplier > 1)
                 {
@@ -198,53 +203,70 @@ namespace TheTen
             }
             RefreshFaces(); UpdateHud();
         }
+        void PlayTileBursts(int[] ids, double multiplier)
+        {
+            var centers = new Vector2[ids.Length];
+            for (int i = 0; i < ids.Length; i++)
+            {
+                var face = faces[ids[i]].rectTransform;
+                centers[i] = tileComboParticles.transform.InverseTransformPoint(face.TransformPoint(face.rect.center));
+            }
+            tileComboParticles.Play(multiplier, centers);
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
             // Tile/menu buttons handle their own clicks before events reach this ancestor.
-            if (eventData.button != PointerEventData.InputButton.Left || IsHome || operationBusy || overlay != null
-                || Run == null || !Run.CancelSelection()) return;
+            if (eventData.button != PointerEventData.InputButton.Left || IsHome || operationBusy || overlay != null) return;
+            if (TouchGame != null)
+            {
+                TouchGame.CancelSelection(); RefreshFaces(); UpdateTouchHud();
+                return;
+            }
+            if (Run == null || !Run.CancelSelection()) return;
             RefreshFaces(); UpdateHud();
         }
         void RenderBoard()
         {
+            var board = TouchGame?.Board ?? Run.Board;
             tileComboParticles.StopAll();
             foreach (Transform child in boardRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             foreach (Transform child in boardEffectsRoot) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             faces.Clear(); numbers.Clear(); tileVisuals.Clear();
-            foreach (var tile in Run.Board.Tiles.OrderBy(t => t.Layer).ThenBy(t => t.Y).ThenBy(t => t.X))
+            foreach (var tile in board.Tiles.OrderBy(t => t.Layer).ThenBy(t => t.Y).ThenBy(t => t.X))
             {
                 if (tile.Removed) continue;
                 var card = Rect("Tile " + tile.Id + " • " + tile.Label, boardRoot, tile.X, tile.Y, BoardModel.TileWidth, BoardModel.TileHeight);
                 var shadow = Panel("Shadow", card, 5, 7, BoardModel.TileWidth, BoardModel.TileHeight, new Color32(24, 13, 42, 100));
                 shadow.raycastTarget = false;
                 var face = Panel("Face", card, 0, 0, BoardModel.TileWidth, BoardModel.TileHeight, Color.white);
-                face.sprite = JewelTheme.Tile(tile.Value);
                 face.type = Image.Type.Simple;
-                face.color = JewelTheme.Tile(tile.Value) != null ? Color.white : TileVisual.TileColor(tile.Value);
                 var button = face.gameObject.AddComponent<Button>(); int id = tile.Id;
                 button.onClick.AddListener(() => SelectTile(id));
                 button.transition = Selectable.Transition.None;
                 faces[id] = face;
-                numbers[id] = Label(tile.Label, face.transform, 5, 28, BoardModel.TileWidth - 10, 76, tile.Value == BoardModel.Double || tile.Value == -1 ? 44 : 54, ink, FontStyle.Normal, TextAnchor.MiddleCenter);
+                numbers[id] = Label(tile.Label, face.transform, 5, 28, BoardModel.TileWidth - 10, 76, 54, ink, FontStyle.Normal, TextAnchor.MiddleCenter);
                 numbers[id].textWrappingMode = TextWrappingModes.NoWrap;
                 numbers[id].fontStyle = FontStyles.Bold;
                 numbers[id].color = ink;
                 UiTypography.ApplyOutline(numbers[id]);
                 var visual = card.gameObject.AddComponent<TileVisual>();
-                visual.Initialize(face, shadow, numbers[id], boardEffectsRoot, Run.Board.IsAvailable(id), tile.Value);
+                visual.Initialize(face, shadow, numbers[id], boardEffectsRoot, board.IsAvailable(id), tile);
                 tileVisuals[id] = visual;
             }
             RefreshFaces();
         }
         void RefreshFaces()
         {
+            var board = TouchGame?.Board ?? Run.Board;
+            var selection = TouchGame?.Selection ?? Run.Selection;
             foreach (var pair in faces)
             {
                 int id = pair.Key;
                 var visual = tileVisuals[id];
                 if (visual == null) continue;
-                if (Run.Board.Tiles[id].Removed) { visual.ClearWithSparkles(); continue; }
-                bool available = Run.Board.IsAvailable(id), selected = Run.Selection.Contains(id);
+                if (board.Tiles[id].Removed) { visual.ClearWithSparkles(); continue; }
+                bool available = board.IsAvailable(id), selected = selection.Contains(id);
                 visual.SetState(available, selected);
             }
         }

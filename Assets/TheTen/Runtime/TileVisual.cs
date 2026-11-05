@@ -14,7 +14,7 @@ namespace TheTen
         public bool IsClearing { get; private set; }
         public bool IsRevealing => revealAge < .4f;
         Image face, shadow, cover;
-        Outline selectedOutline;
+        TileSelectionBorder selectionBorder;
         TMP_Text number;
         CanvasGroup group;
         RectTransform faceRect, effectsParent, burst;
@@ -40,15 +40,17 @@ namespace TheTen
             return Color.white;
         }
 
-        public void Initialize(Image tileFace, Image tileShadow, TMP_Text tileNumber, RectTransform effects, bool initiallyAvailable, int value = 1)
+        public void Initialize(Image tileFace, Image tileShadow, TMP_Text tileNumber, RectTransform effects, bool initiallyAvailable, Tile tile)
         {
             face = tileFace; shadow = tileShadow; number = tileNumber; effectsParent = effects;
-            jewelFace = JewelTheme.Tile(value);
-            baseColor = jewelFace != null ? Color.white : face.color;
-            face.color = baseColor;
-            if (jewelFace != null) { face.sprite = jewelFace; shadow.sprite = jewelFace; }
-            selectedOutline = face.gameObject.AddComponent<Outline>();
-            selectedOutline.effectColor = new Color32(255, 242, 190, 255); selectedOutline.effectDistance = new Vector2(3, 3); selectedOutline.enabled = false;
+            var border = new GameObject("Selection border", typeof(RectTransform), typeof(TileSelectionBorder));
+            border.transform.SetParent(face.transform, false);
+            selectionBorder = border.GetComponent<TileSelectionBorder>();
+            selectionBorder.raycastTarget = false;
+            var borderRect = selectionBorder.rectTransform;
+            borderRect.anchorMin = Vector2.zero; borderRect.anchorMax = Vector2.one;
+            borderRect.offsetMin = borderRect.offsetMax = Vector2.zero;
+            selectionBorder.enabled = false;
             face.gameObject.AddComponent<TilePressFeedback>().Owner = this;
             faceRect = face.rectTransform;
             faceRect.pivot = new Vector2(.5f, .5f);
@@ -58,12 +60,25 @@ namespace TheTen
             group = gameObject.AddComponent<CanvasGroup>();
             var ghost = new GameObject("Reveal shading", typeof(RectTransform), typeof(Image));
             ghost.transform.SetParent(face.transform, false); ghost.transform.SetAsFirstSibling();
-            cover = ghost.GetComponent<Image>(); cover.sprite = jewelFace; cover.raycastTarget = false;
+            cover = ghost.GetComponent<Image>(); cover.raycastTarget = false;
             cover.rectTransform.anchorMin = Vector2.zero; cover.rectTransform.anchorMax = Vector2.one;
             cover.rectTransform.offsetMin = cover.rectTransform.offsetMax = Vector2.zero;
             cover.color = Color.clear;
             available = initiallyAvailable;
+            SetValue(tile);
             SetState(initiallyAvailable, false);
+        }
+
+        public void SetValue(Tile tile)
+        {
+            name = "Tile " + tile.Id + " • " + tile.Label;
+            number.text = tile.Label;
+            number.fontSize = tile.IsDouble || tile.Value == -1 ? 44 : 54;
+            jewelFace = JewelTheme.Tile(tile.Value);
+            face.sprite = cover.sprite = jewelFace;
+            shadow.sprite = jewelFace != null ? jewelFace : JewelTheme.Get("Round");
+            baseColor = jewelFace != null ? Color.white : TileColor(tile.Value);
+            face.color = baseColor;
         }
 
         public void SetState(bool canSelect, bool isSelected)
@@ -73,7 +88,7 @@ namespace TheTen
             if (isSelected && !selected && releaseAge >= PopDuration) StartReleasePop();
             available = canSelect; selected = isSelected;
             if (!available) { pressed = false; releaseAge = 1; }
-            selectedOutline.enabled = selected;
+            selectionBorder.enabled = available && selected;
             // A fast player can select a newly exposed tile immediately. The reveal
             // shortens rather than swallowing that tap or blocking the whole board.
             if (selected && revealAge < .14f) revealAge = .14f;
@@ -91,6 +106,7 @@ namespace TheTen
             missStartedAt = float.NegativeInfinity; face.color = baseColor;
             clearStartScale = faceRect.localScale.x; pressed = false;
             IsClearing = true; clearAge = 0;
+            selectionBorder.enabled = false;
             group.blocksRaycasts = false; group.interactable = false;
             face.raycastTarget = false; face.GetComponent<Button>().interactable = false;
             face.sprite = jewelFace;

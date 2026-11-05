@@ -40,7 +40,7 @@ namespace TheTen.Tests
             yield return null;
         }
         Button Button(string name) => app.GetComponentsInChildren<Button>().First(b => b.name == name);
-        void Begin() { Button("LET'S PLAY  →").onClick.Invoke(); Assert.IsFalse(app.IsHome); }
+        void Begin() { Button("SURVIVAL").onClick.Invoke(); Assert.IsFalse(app.IsHome); }
         void Tap(int id)
         {
             var b = app.GetComponentsInChildren<Button>().First(t => t.transform.parent.name.StartsWith("Tile " + id + " •"));
@@ -70,6 +70,152 @@ namespace TheTen.Tests
         {
             var face = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
             ClickGraphic(face.GetComponent<Image>());
+        }
+
+        [UnityTest] public IEnumerator TouchLabFromLobbyClearsStagesAndReturnsToSurvival()
+        {
+            ClickGraphic(Button("PLAY R&D").GetComponent<Image>());
+            yield return null;
+            ClickGraphic(Button("01").GetComponent<Image>());
+            yield return null;
+            Assert.AreEqual(44, app.TouchGame.TapsLeft);
+            Assert.IsNull(app.Run);
+            Assert.IsFalse(app.GetComponentsInChildren<ComboFeedback>().Any());
+            Assert.IsFalse(app.GetComponentsInChildren<Text>().Any(t => t.name == "Countdown"));
+            TouchStages.Create(1, balance, out var solution);
+            ClickTile(solution[0][0]);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual(43, app.TouchGame.TapsLeft);
+            Button("HOW TO").onClick.Invoke();
+            Button("GOT IT").onClick.Invoke();
+            Assert.AreEqual(1, app.TouchGame.Selection.Count);
+            ClickScreen(BoardScreenPoint(28, 390));
+            Assert.IsEmpty(app.TouchGame.Selection);
+            Assert.AreEqual(43, app.TouchGame.TapsLeft);
+            foreach (var group in solution)
+                foreach (int id in group) Tap(id);
+            yield return new WaitForSecondsRealtime(TileVisual.ClearDuration + .1f);
+            Button("NEXT STAGE").onClick.Invoke();
+            Assert.AreEqual(2, app.TouchGame.Stage);
+            Button("STAGES").onClick.Invoke();
+            Button("20").onClick.Invoke();
+            Assert.AreEqual(38, app.TouchGame.TapsLeft);
+            TouchStages.Create(20, balance, out solution);
+            foreach (var group in solution)
+                foreach (int id in group) Tap(id);
+            yield return new WaitForSecondsRealtime(TileVisual.ClearDuration + .1f);
+            Button("HOME").onClick.Invoke();
+            Assert.IsTrue(app.IsHome);
+            Begin();
+            Assert.IsNull(app.TouchGame);
+            Assert.IsNotNull(app.Run);
+            Assert.IsTrue(app.GetComponentsInChildren<ComboFeedback>().Any());
+        }
+
+        [UnityTest] public IEnumerator TouchDeadEndUpdatesTheLastTileInPlaceAndLetsThePlayerClearIt()
+        {
+            Button("PLAY R&D").onClick.Invoke();
+            Button("01").onClick.Invoke();
+            var run = app.TouchGame;
+            foreach (var t in run.Board.Tiles) { t.Removed = t.Id > 2; t.Layer = 0; }
+            run.Board.Tiles[0].Value = 7; run.Board.Tiles[1].Value = 3; run.Board.Tiles[2].Value = 6;
+            app.SendMessage("RenderBoard");
+            yield return null;
+            var originalFace = app.GetComponentsInChildren<Button>().Single(b => b.transform.parent.name == "Tile 2 • 6");
+            var card = (RectTransform)originalFace.transform.parent;
+            var position = card.anchoredPosition;
+            ClickTile(0); ClickTile(1);
+            Assert.AreEqual(10, run.Score);
+            Assert.AreEqual(42, run.TapsLeft);
+            Assert.AreEqual(TouchStageState.Playing, run.State);
+            Assert.IsTrue(app.GetComponentsInChildren<Text>().Any(t => t.text == "Board reshuffled for free."));
+            var last = app.GetComponentsInChildren<Button>().Single(b => b.transform.parent.name == "Tile 2 • 10");
+            Assert.AreSame(originalFace, last);
+            Assert.AreEqual(position, card.anchoredPosition);
+            Assert.AreEqual("10", last.GetComponentInChildren<Text>().text);
+            Assert.IsNotNull(last.GetComponent<Image>().sprite);
+            yield return null;
+            ClickGraphic(last.GetComponent<Image>());
+            Assert.AreEqual(TouchStageState.Cleared, run.State);
+            Assert.AreEqual(41, run.TapsLeft);
+            yield return new WaitForSecondsRealtime(TileVisual.ClearDuration + .1f);
+            Assert.IsNotNull(Button("NEXT STAGE"));
+        }
+
+        [UnityTest] public IEnumerator TouchMatchBurstsAtEveryClearedFaceIncludingAnUndoMatch()
+        {
+            Button("PLAY R&D").onClick.Invoke();
+            Button("01").onClick.Invoke();
+            int[] values = { 2, 1, 3, 3, 3, 8 };
+            foreach (var tile in app.TouchGame.Board.Tiles)
+            {
+                tile.Removed = tile.Id >= values.Length;
+                tile.Layer = 0;
+                if (!tile.Removed) tile.Value = values[tile.Id];
+            }
+            app.SendMessage("RenderBoard");
+            for (int i = 0; i < 5; i++) Tap(i);
+            var pool = app.GetComponentInChildren<TileComboParticles>();
+            yield return new WaitForSecondsRealtime(.16f);
+            Assert.IsEmpty(pool.GetComponentsInChildren<ComboParticleGraphic>());
+            var centers = Enumerable.Range(1, 4).Select(id =>
+            {
+                var face = app.GetComponentsInChildren<Button>().Single(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
+                var rect = (RectTransform)face.transform;
+                return (Vector2)pool.transform.InverseTransformPoint(rect.TransformPoint(rect.rect.center));
+            }).ToArray();
+            Tap(0); // Deselect 2 from 12, leaving four tiles which sum to ten.
+            yield return new WaitForSecondsRealtime(.08f);
+            var effects = pool.GetComponentsInChildren<ComboParticleGraphic>();
+            Assert.AreEqual(4, effects.Length);
+            Assert.IsTrue(effects.All(e => e.Particles.particleCount > 0 && !e.raycastTarget));
+            CollectionAssert.AreEquivalent(centers, effects.Select(e => e.rectTransform.anchoredPosition));
+            Tap(0); Tap(5);
+            Assert.AreEqual(TouchStageState.Cleared, app.TouchGame.State);
+            Assert.IsFalse(app.GetComponentsInChildren<Button>().Any(b => b.name == "NEXT STAGE"));
+            yield return new WaitForSecondsRealtime(.08f);
+            Assert.AreEqual(2, effects.Count(e => e.Particles.particleCount > 0));
+            yield return new WaitForSecondsRealtime(TileVisual.ClearDuration + .1f);
+            Assert.IsNotNull(Button("NEXT STAGE"));
+        }
+
+        [UnityTest] public IEnumerator TouchLimitOffersRetryWithTheSameStageAndBudget()
+        {
+            Button("PLAY R&D").onClick.Invoke();
+            Button("05").onClick.Invoke();
+            var values = app.TouchGame.Board.Tiles.Select(t => t.Value).ToArray();
+            int id = app.TouchGame.Board.Available().First(t => !t.IsDouble).Id;
+            int budget = app.TouchGame.TapsLeft;
+            var counter = app.GetComponentsInChildren<Text>().Single(t => t.name == "Taps left count");
+            var origin = counter.rectTransform.anchoredPosition;
+            var normalColor = counter.color;
+            while (app.TouchGame.TapsLeft > 6) { Tap(id); Tap(id); }
+            yield return null;
+            Assert.AreEqual("6", counter.text);
+            Assert.AreEqual(normalColor, counter.color);
+            Assert.AreEqual(origin, counter.rectTransform.anchoredPosition);
+            Tap(id);
+            yield return null;
+            Assert.AreEqual("5", counter.text);
+            Assert.AreEqual(new Color32(238, 101, 86, 255), (Color32)counter.color);
+            var warningPosition = counter.rectTransform.anchoredPosition;
+            yield return new WaitForSecondsRealtime(.035f);
+            Assert.AreNotEqual(warningPosition, counter.rectTransform.anchoredPosition);
+            Tap(id); // Cancel selection before spending the remaining five taps.
+            while (app.TouchGame.TapsLeft > 0)
+            {
+                Tap(id);
+                if (app.TouchGame.TapsLeft > 0) Tap(id);
+            }
+            Assert.AreEqual(TouchStageState.OutOfTaps, app.TouchGame.State);
+            var retry = app.GetComponentsInChildren<Button>().Single(b => b.name == "RETRY" && b.transform.parent.name == "Modal");
+            retry.onClick.Invoke();
+            Assert.AreEqual(budget, app.TouchGame.TapsLeft);
+            Assert.AreEqual(TouchStageState.Playing, app.TouchGame.State);
+            CollectionAssert.AreEqual(values, app.TouchGame.Board.Tiles.Select(t => t.Value));
+            yield return null;
+            Assert.AreEqual(normalColor, counter.color);
+            Assert.AreEqual(origin, counter.rectTransform.anchoredPosition);
         }
         Vector2 BoardScreenPoint(float x, float y)
         {
@@ -271,11 +417,10 @@ namespace TheTen.Tests
                 t.text.Contains("MAKE ROOM") || t.text.Contains("A LITTLE") || t.text.Contains("THREE TILES")));
             var intro = app.GetComponentsInChildren<LetterWave>().Single(w => w.name == "Home introduction");
             var letters = intro.GetComponentsInChildren<Text>();
-            Assert.AreEqual(LetterWave.Message, string.Concat(letters.Select(t => t.text)));
+            Assert.AreEqual("TAP TO MAKE 10.", string.Concat(letters.Select(t => t.text)));
             Assert.IsTrue(letters.All(t => t.fontSize == 36 && !t.raycastTarget));
-            Assert.AreEqual(new Color32(246, 209, 95, 255), (Color32)letters[0].color);
-            Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)letters[13].color);
-            Assert.AreEqual(letters[13].color, letters[14].color);
+            foreach (var digit in letters.Where(t => t.text == "1" || t.text == "0"))
+                Assert.AreEqual(new Color32(241, 116, 104, 255), (Color32)digit.color);
             var initialScales = letters.Select(t => t.transform.localScale.x).ToArray();
             yield return new WaitForSecondsRealtime(.14f);
             Assert.IsTrue(letters.Select((t, i) => Mathf.Abs(t.transform.localScale.x - initialScales[i])).Any(delta => delta > .02f));
@@ -487,10 +632,15 @@ namespace TheTen.Tests
             var tile = app.Run.Board.Tiles[id]; var modelPosition = (tile.X, tile.Y);
             var face = app.GetComponentsInChildren<Button>().First(b => b.transform.parent.name.StartsWith("Tile " + id + " •"));
             var rect = (RectTransform)face.transform; var origin = rect.anchoredPosition;
+            var border = face.GetComponentInChildren<TileSelectionBorder>();
+            Assert.IsFalse(border.enabled);
             Tap(id); yield return new WaitForSecondsRealtime(.18f);
+            Assert.IsTrue(border.enabled);
+            Assert.IsFalse(border.raycastTarget);
             Assert.Greater(rect.anchoredPosition.y, origin.y + 8);
             Assert.AreEqual(modelPosition, (tile.X, tile.Y));
-            Tap(id); yield return new WaitForSecondsRealtime(.18f);
+            ClickGraphic(face.GetComponent<Image>()); yield return new WaitForSecondsRealtime(.18f);
+            Assert.IsFalse(border.enabled);
             Assert.AreEqual(origin.y, rect.anchoredPosition.y, .01f);
             Assert.IsEmpty(app.Run.Selection); Assert.AreEqual(0, app.Run.Score);
             LogAssert.NoUnexpectedReceived();

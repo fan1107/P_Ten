@@ -15,6 +15,17 @@ namespace TheTen
 
     public static class TenRules
     {
+        public static int SpecialScoreMultiplier(IEnumerable<Tile> tiles)
+        {
+            int multiplier = 1;
+            foreach (var tile in tiles)
+            {
+                if (tile.IsDouble) return 4;
+                if (tile.Value == 0 || tile.Value == -1) multiplier = 2;
+            }
+            return multiplier;
+        }
+
         public static bool TryEvaluate(int a, int b, int c, out int result)
         {
             result = 0;
@@ -52,7 +63,9 @@ namespace TheTen
         public bool IsAvailable(int id) => !Tiles[id].Removed && !Tiles.Any(t => !t.Removed && Covers(t, Tiles[id]));
         public List<Tile> Available() => Tiles.Where(t => IsAvailable(t.Id)).ToList();
 
-        public static BoardModel Create(int chapter, GameBalance balance, Random random)
+        internal void ShuffleTouchValues(Random random) => GuaranteedPath = TouchRedeal.ShuffleValues(this, random);
+
+        internal static BoardModel CreateLayout(int chapter, GameBalance balance)
         {
             var b = new BoardModel();
             b.Height = Math.Max(3, Math.Min(12, Math.Min(balance.MaxStackHeight, 3 + chapter / 10)));
@@ -76,6 +89,12 @@ namespace TheTen
                             X = left + column * 118, Y = top + row * TileHeight });
                 }
             }
+            return b;
+        }
+
+        public static BoardModel Create(int chapter, GameBalance balance, Random random)
+        {
+            var b = CreateLayout(chapter, balance);
             b.Reconstruct(chapter, balance, random);
             int[] required = chapter >= 5 ? new[] { 0, -1, Double } : chapter >= 3 ? new[] { 0, -1 } : new int[0];
             var protectedMoves = new HashSet<int>();

@@ -57,12 +57,12 @@ namespace TheTen
             hero.sprite = Resources.Load<Sprite>("Atlas/CasualMatte/HomeHero"); hero.preserveAspect = true; hero.raycastTarget = false;
             BuildHomePreviewTiles();
             var intro = Rect("Home introduction", overlay, 90, 795, 540, 44).gameObject.AddComponent<LetterWave>();
-            intro.Initialize(font, 36); intro.enabled = homeMotion;
+            intro.Initialize(font, 36, "TAP TO MAKE 10."); intro.enabled = homeMotion;
             Button("Home records", overlay, 170, 865, 380, 82, ink, ShowHomeRecord);
             overlay.Find("Home records").GetComponentInChildren<TMPro.TMP_Text>().text = "LOCAL BEST  " + ranking.BestScore.ToString("N0") + " PTS";
-            Button("LET'S PLAY  →", overlay, 105, 976, 510, 100, mint, StartRun, paper);
-            overlay.Find("LET'S PLAY  →").GetComponentInChildren<TMPro.TMP_Text>().text = "PLAY";
-            overlay.Find("LET'S PLAY  →").GetComponentInChildren<TMPro.TMP_Text>().fontSize = 42;
+            Button("PLAY R&D", overlay, 75, 976, 310, 100, mint, ShowTouchStages, paper);
+            overlay.Find("PLAY R&D").GetComponentInChildren<TMPro.TMP_Text>().fontSize = 38;
+            Button("SURVIVAL", overlay, 401, 976, 244, 100, ink, StartRun, paper);
             HomeButton("Rank button", "RANKING", "HomeTrophy", 139, 1112, 102, () => ShowRanking(0));
             HomeButton("REVIVE PASS / MOCK STORE", "STORE", "HomeStore", 309, 1112, 102, ShowStore);
             HomeButton("HOW TO PLAY", "HOW TO", "HomeBook", 479, 1112, 102, ShowHelp);

@@ -75,8 +75,7 @@ namespace TheTen
                 foreach (int selected in Selection) Board.Tiles[selected].Removed = true;
                 TotalRemovedTiles += 3; SuccessCount++;
                 comboIndex = ComboRemaining > 0 ? Math.Min(comboIndex + 1, ComboMultipliers.Length - 1) : 0;
-                LastMatchBonusMultiplier = Selection.Any(i => Board.Tiles[i].IsDouble) ? 4
-                    : Selection.Any(i => Board.Tiles[i].Value == 0 || Board.Tiles[i].Value == -1) ? 2 : 1;
+                LastMatchBonusMultiplier = TenRules.SpecialScoreMultiplier(Selection.Select(i => Board.Tiles[i]));
                 LastMatchScore = (int)Math.Round(balance.MatchScore * ComboMultiplier * LastMatchBonusMultiplier, MidpointRounding.AwayFromZero);
                 Score += LastMatchScore;
                 ComboRemaining = balance.ComboWindow;
